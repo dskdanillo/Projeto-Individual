@@ -1,0 +1,43 @@
+DSK - AREA ADMINISTRATIVA (clientes e financeiro)
+
+1) BANCO (MySQL Workbench, conectado como root)
+   - Para recriar do zero, abra somente db/init.sql na pasta raiz "dsk" e
+     execute o arquivo inteiro.
+   - O script apaga e recria apenas o banco projetoindividual. Nao precisa
+     apagar o banco manualmente; os demais bancos nao serao alterados.
+   - O banco novo cria somente o administrador dsk.danillo@gmail.com.
+   - db/init.sql e o unico script SQL. Clientes podem se cadastrar pela aplicacao.
+   - Se uma versao antiga ja criou a coluna pix_chave, confira com
+     SHOW COLUMNS FROM projetoindividual.clientes LIKE 'pix_chave';
+     e remova-a com ALTER TABLE projetoindividual.clientes DROP COLUMN pix_chave;
+
+2) ARQUIVOS
+   Copie as pastas deste pacote para dentro da pasta raiz "dsk" do projeto,
+   aceitando substituir os arquivos que ja existem:
+     app/lib/admin.php            (NOVO)
+     app/lib/helpers.php          (alterado: cidade e telefone)
+     app/lib/auth.php             (alterado: bloqueio de conta suspensa)
+     app/lib/layout.php           (alterado: menu do admin)
+     public/cadastro.php          (alterado: validacao de cadastro)
+     public/admin/dashboard.php   (substitui o anterior)
+     public/admin/clientes.php    (NOVO)
+     public/admin/financeiro.php  (NOVO)
+     public/cliente/dados-pessoais.php (NOVO)
+     public/assets/css/style.css  (estilos administrativos)
+
+   A tela Clientes permite criar, editar e excluir cadastros, alterar dados
+   pessoais e redefinir o acesso/senha. Valores e cobranças de mensalidade ficam
+   na pagina Financeiro, separados dos dados pessoais. Nao ha calculo de comissao
+   por rota.
+   O cadastro valida cidade no formato CIDADE / UF e impede e-mail ou telefone
+   duplicado. O cliente pode editar seu cadastro em Dados pessoais depois de entrar.
+   O Financeiro registra as mensalidades da plataforma; nao processa pagamentos
+   nem cobra valores de rotas. Pix e apenas uma forma manual de marcar uma
+   mensalidade como paga.
+
+3) RODAR (igual antes)
+   C:\xampp\php\php.exe -S 127.0.0.1:8000 -t public
+   Unico administrador autorizado: dsk.danillo@gmail.com / 12345@54321
+
+Observacao: db/init.sql apaga os dados existentes em projetoindividual e
+recria o banco. Os dados atuais sao apenas testes, entao podem ser descartados.
