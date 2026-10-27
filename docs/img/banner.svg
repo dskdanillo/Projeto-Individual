@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="100%" role="img" aria-label="DSK - Gestão de Custo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1128"/>
+      <stop offset="1" stop-color="#14224a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d4af6a"/>
+      <stop offset="1" stop-color="#5ec8c0"/>
+    </linearGradient>
+    <path id="trajeto" d="M 640 205 C 720 120, 780 250, 860 170 S 1000 90, 1090 150"/>
+    <style>
+      .title { font: 800 92px 'Segoe UI', Arial, sans-serif; fill: url(#gold); letter-spacing: 6px; }
+      .sub   { font: 600 24px 'Segoe UI', Arial, sans-serif; fill: #9fb0d8; letter-spacing: 7px; }
+      .tag   { font: 400 17px 'Segoe UI', Arial, sans-serif; fill: #6b7aa3; }
+      .road  { fill: none; stroke: #2a3a6b; stroke-width: 10; stroke-linecap: round; }
+      .route { fill: none; stroke: url(#gold); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 14 12; animation: flow 1.6s linear infinite; }
+      @keyframes flow { to { stroke-dashoffset: -52; } }
+      .pulse { animation: pulse 2.4s ease-out infinite; transform-origin: 1090px 150px; }
+      @keyframes pulse { 0% { opacity: .6; transform: scale(1); } 100% { opacity: 0; transform: scale(3.2); } }
+      .fade { animation: fade 1.2s ease-out both; }
+      @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+  </defs>
+
+  <rect width="1200" height="300" rx="18" fill="url(#bg)"/>
+  <g opacity=".07" stroke="#9fb0d8">
+    <path d="M0 60H1200M0 120H1200M0 180H1200M0 240H1200"/>
+    <path d="M100 0V300M250 0V300M400 0V300M550 0V300M700 0V300M850 0V300M1000 0V300M1150 0V300"/>
+  </g>
+
+  <text class="title fade" x="60" y="150">DSK</text>
+  <text class="sub fade" x="64" y="195" style="animation-delay:.2s">GESTÃO DE CUSTO</text>
+  <text class="tag fade" x="64" y="236" style="animation-delay:.4s">Rotas, distâncias e lucro de motoristas parceiros</text>
+
+  <use href="#trajeto" class="road"/>
+  <use href="#trajeto" class="route"/>
+
+  <circle cx="640" cy="205" r="11" fill="#3f9b6e" stroke="#fff" stroke-width="3"/>
+  <circle cx="1090" cy="150" r="11" fill="#d9534f" stroke="#fff" stroke-width="3"/>
+  <circle class="pulse" cx="1090" cy="150" r="11" fill="#d9534f"/>
+
+  <circle r="9" fill="#d4af6a" stroke="#0a1128" stroke-width="3">
+    <animateMotion dur="5s" repeatCount="indefinite" rotate="auto">
+      <mpath href="#trajeto"/>
+    </animateMotion>
+  </circle>
+</svg>
