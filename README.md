@@ -148,8 +148,21 @@ Este é o único e-mail autorizado a usar o perfil de administrador. A senha fic
 O menu do administrador tem **Dashboard**, **Clientes** e **Financeiro**.
 
 - **Clientes:** selecione um cadastro para editar dados pessoais e de acesso, redefinir a senha e controlar o status da conta. Cidade é salva no formato `CIDADE / UF`; e-mail e telefone não podem se repetir.
-- **Financeiro:** controla somente a **mensalidade** que o cliente paga para usar a plataforma. O administrador gera a cobrança do mês e registra a baixa quando confirma o recebimento. Pix é uma forma de pagamento registrada, não uma chave armazenada.
+- **Financeiro:** controla somente a **mensalidade** que o cliente paga para usar a plataforma. Novos cadastros recebem o vencimento no dia em que foram criados e a primeira cobrança é lançada na hora. As próximas mensalidades são geradas automaticamente conforme o dia individual de vencimento; o administrador também pode gerar para todos ou somente para um cliente. A cobrança aparece no financeiro e no painel do cliente. O administrador registra a baixa quando confirma o recebimento. Pix é uma forma de pagamento registrada, não uma chave armazenada.
 - O sistema **não processa pagamentos** nem recebe valores de rotas.
+
+### Ativar a geração automática no Windows (XAMPP)
+
+A geração recorrente depende do Agendador de Tarefas do Windows e do MySQL estar ligado. Crie uma tarefa diária, por exemplo às 08:00:
+
+1. Abra **Agendador de Tarefas** e escolha **Criar Tarefa Básica**.
+2. Selecione o gatilho **Diariamente**.
+3. Como ação, selecione **Iniciar um programa**.
+4. Em **Programa/script**, informe `C:\xampp\php\php.exe`.
+5. Em **Adicionar argumentos**, informe `"C:\xampp\htdocs\projeto individual 3.0\dsk\scripts\gerar_mensalidades.php"` (com aspas e ajustado para a pasta onde o projeto está instalado).
+6. Salve a tarefa e mantenha o MySQL do XAMPP ligado no horário escolhido. Se o computador ficar desligado, habilite a opção para executar a tarefa assim que possível após o horário agendado.
+
+O script é idempotente: pode rodar diariamente sem duplicar mensalidades. Ele cria as cobranças do mês cujo vencimento individual já chegou. Para clientes antigos, ajuste o valor e o dia de vencimento em **Clientes → editar cliente**. A ação manual fica em **Financeiro → Gerar mensalidades**, onde é possível selecionar um único cliente.
 
 ## 🗂️ Estrutura do projeto
 
@@ -159,6 +172,8 @@ dsk/
 │   └── lib/
 ├── db/
 │   └── init.sql          # schema do banco de dados
+├── scripts/
+│   └── gerar_mensalidades.php # tarefa recorrente de geração
 ├── docs/
 │   └── img/              # banner, prints e GIFs do README
 └── public/               # document root do servidor

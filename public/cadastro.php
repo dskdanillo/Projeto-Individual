@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/../app/bootstrap.php';
+require_once APP_PATH . '/lib/mensalidades.php';
 seed_if_empty();
 
 if ($u = current_user()) {
@@ -47,8 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare('INSERT INTO usuarios (nome,email,senha,perfil) VALUES (?,?,?,"cliente")')
                         ->execute([$v['nome'], $v['email'], password_hash($senha, PASSWORD_DEFAULT)]);
                     $uid = (int)$pdo->lastInsertId();
-                    $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa) VALUES (?,?,?,?,?,?)')
-                        ->execute([$uid, $v['telefone'], $v['cidade'], $v['tipo_veiculo'], $v['modelo_veiculo'], $v['placa']]);
+                    $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,dia_vencimento) VALUES (?,?,?,?,?,?,?)')
+                        ->execute([$uid, $v['telefone'], $v['cidade'], $v['tipo_veiculo'], $v['modelo_veiculo'], $v['placa'], (int)date('j')]);
+                    gerar_mensalidades($pdo, date('Y-m'), (int)$pdo->lastInsertId());
                     $pdo->commit();
                 } catch (PDOException $e) {
                     $pdo->rollBack();
@@ -58,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $erros[] = 'Já existe um cadastro com este e-mail ou telefone.';
                 }
                 if (!$erros) {
-                    flash('success', 'Cadastro realizado! Entre com seu e-mail e senha.');
+                    flash('success', 'Cadastro realizado! A primeira mensalidade já está disponível; entre com seu e-mail e senha.');
                     redirect('/index.php');
                 }
             }

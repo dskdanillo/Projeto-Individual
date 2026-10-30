@@ -42,6 +42,15 @@ $st = $pdo->prepare('SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_
 $st->execute([$cid, $ini, $fim]);
 $rotas = $st->fetchAll();
 
+// Últimas mensalidades para o cliente acompanhar as cobranças da plataforma
+$st = $pdo->prepare('SELECT referencia, valor, vencimento, pago_em
+                       FROM mensalidades
+                      WHERE cliente_id = ?
+                      ORDER BY referencia DESC
+                      LIMIT 6');
+$st->execute([$cid]);
+$mensalidades = $st->fetchAll();
+
 $right = '<form method="get"><select name="p" class="custom-select" style="height:42px;" onchange="this.form.submit()">';
 foreach (['dia' => 'Hoje', 'mes' => 'Este mês', 'ano' => 'Este ano'] as $k => $l) {
     $right .= '<option value="' . $k . '"' . ($k === $p ? ' selected' : '') . '>' . $l . '</option>';
@@ -79,6 +88,38 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
       <p class="kpi-value"><?= number_format($km, 1, ',', '.') ?> km</p>
       <div class="kpi-label"><?= $n ?> rota(s) no período</div>
     </div>
+  </div>
+</div>
+
+<div class="dsk-card mb-3">
+  <div class="section-title"><i class="bi bi-receipt"></i> Mensalidades da plataforma</div>
+  <p class="text-dim" style="font-size:12.5px;">Acompanhe suas cobranças e pagamentos. Para combinar o pagamento, fale com a administração; o sistema não processa pagamentos.</p>
+  <div class="table-responsive">
+    <table class="table-dsk compact">
+      <thead><tr><th>Referência</th><th>Vencimento</th><th>Valor</th><th>Situação</th></tr></thead>
+      <tbody>
+      <?php foreach ($mensalidades as $mensalidade):
+          $situacao = !empty($mensalidade['pago_em'])
+              ? 'paga'
+              : ($mensalidade['vencimento'] < date('Y-m-d') ? 'atrasada' : 'pendente');
+          $rotulo = ['paga' => 'Paga', 'atrasada' => 'Em atraso', 'pendente' => 'A vencer'][$situacao];
+      ?>
+        <tr>
+          <td class="font-mono"><?= h(date('m/Y', strtotime($mensalidade['referencia']))) ?></td>
+          <td class="font-mono"><?= h(date_br($mensalidade['vencimento'])) ?></td>
+          <td class="font-mono"><?= brl($mensalidade['valor']) ?></td>
+          <td>
+            <span class="badge-status <?= h($situacao) ?>"><?= h($rotulo) ?></span>
+            <?php if (!empty($mensalidade['pago_em'])): ?>
+              <small class="text-dim"> em <?= h(date_br($mensalidade['pago_em'])) ?></small>
+            <?php endif; ?>
+          </td>
+        </tr>
+      <?php endforeach; if (!$mensalidades): ?>
+        <tr><td colspan="4"><div class="empty-state"><i class="bi bi-receipt"></i>Nenhuma mensalidade registrada até o momento.</div></td></tr>
+      <?php endif; ?>
+      </tbody>
+    </table>
   </div>
 </div>
 

@@ -15,6 +15,7 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
    Copie as pastas deste pacote para dentro da pasta raiz "dsk" do projeto,
    aceitando substituir os arquivos que ja existem:
      app/lib/admin.php            (NOVO)
+     app/lib/mensalidades.php     (NOVO)
      app/lib/helpers.php          (alterado: cidade e telefone)
      app/lib/auth.php             (alterado: bloqueio de conta suspensa)
      app/lib/layout.php           (alterado: menu do admin)
@@ -22,6 +23,7 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
      public/admin/dashboard.php   (substitui o anterior)
      public/admin/clientes.php    (NOVO)
      public/admin/financeiro.php  (NOVO)
+     scripts/gerar_mensalidades.php (NOVO)
      public/cliente/dados-pessoais.php (NOVO)
      public/assets/css/style.css  (estilos administrativos)
 
@@ -32,8 +34,11 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
    O cadastro valida cidade no formato CIDADE / UF e impede e-mail ou telefone
    duplicado. O cliente pode editar seu cadastro em Dados pessoais depois de entrar.
    O Financeiro registra as mensalidades da plataforma; nao processa pagamentos
-   nem cobra valores de rotas. Pix e apenas uma forma manual de marcar uma
-   mensalidade como paga.
+   nem cobra valores de rotas. Novos cadastros vencem no dia em que foram criados
+   e recebem a primeira cobranca imediatamente. As proximas cobrancas sao
+   geradas por scripts/gerar_mensalidades.php; agende esse script diariamente
+   no Agendador de Tarefas do Windows com C:\xampp\php\php.exe e mantenha o MySQL
+   ligado. Pix e apenas uma forma manual de marcar uma mensalidade como paga.
 
 3) RODAR (igual antes)
    C:\xampp\php\php.exe -S 127.0.0.1:8000 -t public

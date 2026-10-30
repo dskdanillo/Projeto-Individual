@@ -61,6 +61,8 @@ function ler_cliente_post(array $post): array
     $d['cidade'] = formatar_cidade($d['cidade']);
     $d['telefone'] = normalizar_telefone($d['telefone']);
     $d['senha']             = (string)($post['senha'] ?? '');
+    $d['valor_mensalidade'] = num_in((string)($post['valor_mensalidade'] ?? '49,90'));
+    $d['dia_vencimento'] = (int)($post['dia_vencimento'] ?? date('j'));
 
     $erros = [];
     if ($d['nome'] === '') {
@@ -77,6 +79,12 @@ function ler_cliente_post(array $post): array
     }
     if (!placa_valida($d['placa'])) {
         $erros[] = 'Informe uma placa válida (modelo antigo ABC-1234 ou Mercosul ABC1D23).';
+    }
+    if ($d['valor_mensalidade'] <= 0 || $d['valor_mensalidade'] > 99999) {
+        $erros[] = 'Informe um valor mensal válido.';
+    }
+    if ($d['dia_vencimento'] < 1 || $d['dia_vencimento'] > 31) {
+        $erros[] = 'O dia de vencimento deve ficar entre 1 e 31.';
     }
     if (!in_array($d['tipo_veiculo'], TIPOS_VEICULO, true)) {
         $d['tipo_veiculo'] = 'Carro';

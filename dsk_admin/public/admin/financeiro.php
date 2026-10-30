@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../../app/bootstrap.php';
 require_once APP_PATH . '/lib/admin.php';
+require_once APP_PATH . '/lib/mensalidades.php';
 $u    = require_login('admin');
 $pdo  = db();
 $hoje = date('Y-m-d');
@@ -26,17 +27,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!mes_valido($mes)) {
             flash('danger', 'Escolha um mês válido.');
         } else {
-            $st = $pdo->prepare("INSERT IGNORE INTO mensalidades (cliente_id, referencia, valor, vencimento)
-                                 SELECT c.id, CAST(? AS DATE), c.valor_mensalidade,
-                                        DATE_ADD(CAST(? AS DATE), INTERVAL LEAST(c.dia_vencimento, DAY(LAST_DAY(CAST(? AS DATE)))) - 1 DAY)
-                                   FROM clientes c JOIN usuarios u ON u.id = c.usuario_id
-                                  WHERE u.perfil = 'cliente' AND u.status IN ('ativo','inadimplente') AND c.valor_mensalidade > 0");
-            $ref = $mes . '-01';
-            $st->execute([$ref, $ref, $ref]);
-            $n = $st->rowCount();
+            $clienteId = (int)($_POST['cliente_id'] ?? 0);
+            if ($clienteId < 0) {
+                flash('danger', 'Cliente inválido.');
+                voltar_financeiro();
+            }
+            $st = $pdo->prepare('SELECT 1 FROM clientes WHERE id = ?');
+            $st->execute([$clienteId]);
+            if ($clienteId > 0 && !$st->fetch()) {
+                flash('danger', 'Cliente não encontrado.');
+                voltar_financeiro();
+            }
+            $n = gerar_mensalidades($pdo, $mes, $clienteId > 0 ? $clienteId : null);
             flash($n ? 'success' : 'warning', $n
-                ? "$n mensalidade(s) de " . mes_br($ref) . ' gerada(s).'
-                : 'Nenhuma mensalidade nova: os clientes já têm cobrança em ' . mes_br($ref) . '.');
+                ? "$n mensalidade(s) de " . mes_br($mes . '-01') . ' gerada(s).'
+                : 'Nenhuma mensalidade nova: já existe cobrança ou o cliente não está elegível para ' . mes_br($mes . '-01') . '.');
         }
 
     // ---- NOVA cobrança avulsa ----
@@ -223,6 +228,7 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
 
 <div class="dsk-card mb-3">
   <div class="section-title"><i class="bi bi-list-check"></i> Cobranças (<?= count($lista) ?>)</div>
+  <p class="text-dim" style="font-size:12.5px;">Gere a mensalidade do mês e compartilhe os dados de pagamento com o cliente pelo canal habitual. Depois, registre aqui quando o pagamento for confirmado.</p>
   <div class="table-responsive">
     <table class="table-dsk">
       <thead><tr><th>Cliente</th><th>Referência</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead>
@@ -258,7 +264,7 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
           </td>
         </tr>
       <?php endforeach; if (!$lista): ?>
-        <tr><td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i>Nenhuma cobrança encontrada.<br><small>Use “Gerar mensalidades” para criar as cobranças do mês.</small></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i>Nenhuma cobrança encontrada.<br><small>Gere as mensalidades para elas aparecerem nesta lista e no painel do cliente.</small><br><button type="button" class="btn btn-accent mt-3" data-toggle="modal" data-target="#modalGerar"><i class="bi bi-magic"></i> Gerar mensalidades</button></div></td></tr>
       <?php endif; ?>
       </tbody>
     </table>
@@ -388,7 +394,15 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
       <div class="modal-header"><h5 class="modal-title font-display">Gerar mensalidades</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button></div>
       <div class="modal-body">
-        <p class="text-dim" style="font-size:13px;">Cria a cobrança do mês para todos os clientes <strong>ativos</strong> e <strong>inadimplentes</strong>, usando o valor e o dia de vencimento de cada um. Quem já tem cobrança nesse mês é ignorado (não duplica).</p>
+        <p class="text-dim" style="font-size:13px;">Gera a cobrança usando o valor e o dia de vencimento configurados para o cliente. Se já existir cobrança para o mês, ela não será duplicada. A geração automática diária também cria as cobranças no vencimento.</p>
+        <div class="form-group">
+          <label class="form-label" for="gerarCliente">Cliente</label>
+          <select class="custom-select" id="gerarCliente" name="cliente_id">
+            <option value="">Todos os clientes elegíveis</option>
+            <?php foreach ($clientes as $c): ?><option value="<?= (int)$c['id'] ?>"><?= h($c['nome']) ?></option><?php endforeach; ?>
+          </select>
+          <div class="hint">Selecione um cliente para gerar somente a mensalidade dele.</div>
+        </div>
         <label class="form-label" for="gerarMes">Mês de referência</label>
         <input type="month" class="form-control" id="gerarMes" name="mes" value="<?= h(date('Y-m')) ?>" required>
       </div>

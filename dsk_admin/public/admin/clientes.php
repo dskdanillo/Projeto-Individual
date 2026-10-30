@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../../app/bootstrap.php';
 require_once APP_PATH . '/lib/admin.php';
+require_once APP_PATH . '/lib/mensalidades.php';
 $u    = require_login('admin');
 $pdo  = db();
 
@@ -41,14 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare("INSERT INTO usuarios (nome,email,senha,perfil,status) VALUES (?,?,?,'cliente','ativo')")
                     ->execute([$d['nome'], $d['email'], password_hash($d['senha'], PASSWORD_DEFAULT)]);
                 $novo = (int)$pdo->lastInsertId();
-                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa) VALUES (?,?,?,?,?,?)')
-                    ->execute([$novo, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa']]);
+                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,valor_mensalidade,dia_vencimento) VALUES (?,?,?,?,?,?,?,?)')
+                    ->execute([$novo, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa'], $d['valor_mensalidade'], $d['dia_vencimento']]);
+                gerar_mensalidades($pdo, date('Y-m'), (int)$pdo->lastInsertId());
                 $pdo->commit();
             } catch (Throwable $e) {
                 $pdo->rollBack();
                 throw $e;
             }
-            flash('success', 'Cliente cadastrado.');
+            flash('success', 'Cliente cadastrado e primeira mensalidade lançada.');
             redirect('/admin/clientes.php?editar=' . $novo);
         }
         $form = $d;
@@ -83,11 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare("UPDATE usuarios SET senha = ? WHERE id = ? AND perfil = 'cliente'")
                         ->execute([password_hash($d['senha'], PASSWORD_DEFAULT), $id]);
                 }
-                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa)
-                               VALUES (?,?,?,?,?,?)
+                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,valor_mensalidade,dia_vencimento)
+                               VALUES (?,?,?,?,?,?,?,?)
                                ON DUPLICATE KEY UPDATE telefone = VALUES(telefone), cidade = VALUES(cidade), tipo_veiculo = VALUES(tipo_veiculo),
-                                    modelo_veiculo = VALUES(modelo_veiculo), placa = VALUES(placa)')
-                    ->execute([$id, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa']]);
+                                    modelo_veiculo = VALUES(modelo_veiculo), placa = VALUES(placa), valor_mensalidade = VALUES(valor_mensalidade),
+                                    dia_vencimento = VALUES(dia_vencimento)')
+                    ->execute([$id, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa'], $d['valor_mensalidade'], $d['dia_vencimento']]);
                 $pdo->commit();
             } catch (Throwable $e) {
                 $pdo->rollBack();
@@ -134,7 +137,8 @@ $cli      = null;
 
 if ($editarId > 0) {
     $st = $pdo->prepare("SELECT u.id, u.nome, u.email, u.status, u.status_motivo, u.status_alterado_em, u.criado_em,
-                                c.id AS cliente_id, c.telefone, c.cidade, c.tipo_veiculo, c.modelo_veiculo, c.placa
+                                c.id AS cliente_id, c.telefone, c.cidade, c.tipo_veiculo, c.modelo_veiculo, c.placa,
+                                c.valor_mensalidade, c.dia_vencimento
                            FROM usuarios u LEFT JOIN clientes c ON c.usuario_id = u.id
                           WHERE u.id = ? AND u.perfil = 'cliente'");
     $st->execute([$editarId]);
@@ -182,6 +186,21 @@ $campos_cliente = function (bool $novo) use ($f): void { ?>
         <div class="form-group col-md-3">
           <label class="form-label" for="placa">Placa</label>
           <input type="text" class="form-control" id="placa" name="placa" maxlength="8" data-uppercase autocapitalize="characters" spellcheck="false" placeholder="ABC-1234 ou ABC1D23" value="<?= h($f('placa')) ?>">
+        </div>
+      </div>
+
+      <div class="form-step-label mt-2"><i class="bi bi-calendar-check"></i> Cobrança mensal</div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label class="form-label" for="valor_mensalidade">Valor mensal (R$)</label>
+          <input type="text" inputmode="decimal" class="form-control" id="valor_mensalidade" name="valor_mensalidade"
+                 value="<?= h(number_format((float)$f('valor_mensalidade', 49.90), 2, ',', '.')) ?>" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label class="form-label" for="dia_vencimento">Dia de vencimento</label>
+          <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" min="1" max="31"
+                 value="<?= h($f('dia_vencimento', date('j'))) ?>" required>
+          <div class="hint">Novos cadastros usam o dia em que a conta foi criada.</div>
         </div>
       </div>
 
