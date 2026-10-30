@@ -82,6 +82,47 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
   </div>
 </div>
 
+<div class="dsk-card mb-3">
+  <div class="section-title"><i class="bi bi-file-earmark-spreadsheet"></i> Gerar relatório</div>
+  <p class="text-dim" style="font-size:12.5px;">Baixe uma planilha compatível com Excel, com as rotas, os custos por categoria e o lucro do período.</p>
+  <form method="get" action="/cliente/relatorio.php" data-date-filter>
+    <div class="form-row align-items-end">
+      <div class="form-group col-md-3">
+        <label class="form-label" for="relatorioPeriodo">Período</label>
+        <select class="custom-select" id="relatorioPeriodo" name="periodo">
+          <option value="dia">Dia específico</option>
+          <option value="mes" selected>Mês</option>
+          <option value="ano">Ano</option>
+          <option value="intervalo">Período personalizado</option>
+        </select>
+      </div>
+      <div class="form-group col-md-3" data-period-field="dia">
+        <label class="form-label" for="relatorioDia">Data</label>
+        <input type="date" class="form-control" id="relatorioDia" name="dia" value="<?= h(date('Y-m-d')) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="mes">
+        <label class="form-label" for="relatorioMes">Mês</label>
+        <input type="month" class="form-control" id="relatorioMes" name="mes" value="<?= h(date('Y-m')) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="ano">
+        <label class="form-label" for="relatorioAno">Ano</label>
+        <input type="number" class="form-control" id="relatorioAno" name="ano" min="1900" max="9999" value="<?= h(date('Y')) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="intervalo">
+        <label class="form-label" for="relatorioInicio">Data inicial</label>
+        <input type="date" class="form-control" id="relatorioInicio" name="inicio" value="<?= h(date('Y-m-01')) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="intervalo">
+        <label class="form-label" for="relatorioFim">Data final</label>
+        <input type="date" class="form-control" id="relatorioFim" name="fim" value="<?= h(date('Y-m-d')) ?>">
+      </div>
+      <div class="form-group col-md-3">
+        <button type="submit" class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-download"></i> Gerar relatório</button>
+      </div>
+    </div>
+  </form>
+</div>
+
 <div class="row">
   <div class="col-lg-4 mb-3">
     <div class="dsk-card h-100">
@@ -134,4 +175,4 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
     </table>
   </div>
 </div>
-<?php app_footer();
+<?php app_footer('<script src="/assets/js/date-filter.js"></script>');

@@ -5,7 +5,7 @@ $pdo = db();
 $id = (int)$u['id'];
 
 $st = $pdo->prepare('SELECT u.nome, u.email, c.telefone, c.cidade, c.tipo_veiculo,
-                            c.modelo_veiculo, c.placa
+                            c.modelo_veiculo, c.placa, c.consumo_km_l, c.preco_combustivel
                        FROM usuarios u JOIN clientes c ON c.usuario_id = u.id
                       WHERE u.id = ? AND u.perfil = \'cliente\'');
 $st->execute([$id]);
@@ -26,6 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'tipo_veiculo' => trim((string)($_POST['tipo_veiculo'] ?? '')),
         'modelo_veiculo' => mb_substr(trim((string)($_POST['modelo_veiculo'] ?? '')), 0, 80),
         'placa' => normalizar_placa((string)($_POST['placa'] ?? '')),
+        'consumo_km_l' => trim((string)($_POST['consumo_km_l'] ?? '')),
+        'preco_combustivel' => trim((string)($_POST['preco_combustivel'] ?? '')),
     ];
 
     if ($form['nome'] === '') {
@@ -45,6 +47,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (!placa_valida($form['placa'])) {
         $erros[] = 'Informe uma placa válida (modelo antigo ABC-1234 ou Mercosul ABC1D23).';
+    }
+    if (($form['consumo_km_l'] === '') !== ($form['preco_combustivel'] === '')) {
+        $erros[] = 'Informe o consumo do veículo e o preço do combustível juntos.';
+    } elseif ($form['consumo_km_l'] !== '') {
+        $consumo = num_in($form['consumo_km_l']);
+        $precoCombustivel = num_in($form['preco_combustivel']);
+        if ($consumo < 0.1 || $consumo > 100) {
+            $erros[] = 'Informe um consumo entre 0,1 e 100 km/L.';
+        }
+        if ($precoCombustivel <= 0 || $precoCombustivel > 1000) {
+            $erros[] = 'Informe um preço por litro maior que zero e até R$ 1.000,00.';
+        }
     }
     if (!$erros) {
         $check = $pdo->prepare('SELECT 1 FROM usuarios WHERE email = ? AND id <> ?');
@@ -67,11 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE usuarios SET nome = ?, email = ? WHERE id = ? AND perfil = 'cliente'")
                 ->execute([$form['nome'], $form['email'], $id]);
             $pdo->prepare('UPDATE clientes
-                              SET telefone = ?, cidade = ?, tipo_veiculo = ?, modelo_veiculo = ?, placa = ?
+                              SET telefone = ?, cidade = ?, tipo_veiculo = ?, modelo_veiculo = ?, placa = ?,
+                                  consumo_km_l = ?, preco_combustivel = ?
                             WHERE usuario_id = ?')
                 ->execute([
                     $form['telefone'], $form['cidade'], $form['tipo_veiculo'],
-                    $form['modelo_veiculo'], $form['placa'], $id,
+                    $form['modelo_veiculo'], $form['placa'],
+                    $form['consumo_km_l'] === '' ? null : num_in($form['consumo_km_l']),
+                    $form['preco_combustivel'] === '' ? null : num_in($form['preco_combustivel']),
+                    $id,
                 ]);
             $pdo->commit();
             flash('success', 'Seus dados pessoais foram atualizados.');
@@ -130,6 +148,19 @@ app_header($u, 'Dados pessoais', 'Atualize suas informações de cadastro', 'dad
       <div class="form-group col-md-3">
         <label class="form-label" for="placa">Placa</label>
         <input type="text" class="form-control" id="placa" name="placa" maxlength="8" data-uppercase autocapitalize="characters" spellcheck="false" value="<?= h($form['placa']) ?>">
+      </div>
+      <div class="form-group col-md-4">
+        <label class="form-label" for="consumo_km_l">Consumo do veículo (km/L)</label>
+        <input type="text" inputmode="decimal" class="form-control" id="consumo_km_l" name="consumo_km_l"
+               placeholder="Ex.: 10,5" value="<?= h($form['consumo_km_l'] ?? '') ?>">
+      </div>
+      <div class="form-group col-md-4">
+        <label class="form-label" for="preco_combustivel">Preço do combustível (R$/L)</label>
+        <input type="text" inputmode="decimal" class="form-control" id="preco_combustivel" name="preco_combustivel"
+               placeholder="Ex.: 5,89" value="<?= h($form['preco_combustivel'] ?? '') ?>">
+      </div>
+      <div class="form-group col-md-12 text-dim" style="font-size:12.5px;">
+        Informe os dois valores para que os custos de combustível sejam calculados automaticamente por rota. Deixe ambos em branco para não usar o cálculo automático.
       </div>
     </div>
 

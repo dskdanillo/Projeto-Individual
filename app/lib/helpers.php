@@ -111,3 +111,77 @@ function periodo_label(string $tipo): string
 {
     return ['dia' => 'Hoje', 'mes' => 'Este mês', 'ano' => 'Este ano'][$tipo] ?? 'Este mês';
 }
+
+/** @return array{tipo:string,dia:string,mes:string,ano:string,inicio:string,fim:string,de:?string,ate:?string} */
+function ler_filtro_periodo(array $input, string $padrao = 'todos'): array
+{
+    $hoje = date('Y-m-d');
+    $tipo = (string)($input['periodo'] ?? $padrao);
+    if (!in_array($tipo, ['todos', 'dia', 'mes', 'ano', 'intervalo'], true)) {
+        throw new InvalidArgumentException('Selecione um período válido.');
+    }
+
+    $filtro = [
+        'tipo' => $tipo,
+        'dia' => $hoje,
+        'mes' => date('Y-m'),
+        'ano' => date('Y'),
+        'inicio' => date('Y-m-01'),
+        'fim' => $hoje,
+        'de' => null,
+        'ate' => null,
+    ];
+
+    if ($tipo === 'todos') {
+        return $filtro;
+    }
+
+    if ($tipo === 'dia') {
+        $dia = (string)($input['dia'] ?? $hoje);
+        if (!data_iso_valida($dia)) {
+            throw new InvalidArgumentException('Informe uma data válida.');
+        }
+        $filtro['dia'] = $dia;
+        $filtro['de'] = $dia;
+        $filtro['ate'] = $dia;
+    } elseif ($tipo === 'mes') {
+        $mes = (string)($input['mes'] ?? date('Y-m'));
+        if (!preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $mes)) {
+            throw new InvalidArgumentException('Informe um mês válido.');
+        }
+        $filtro['mes'] = $mes;
+        $filtro['de'] = $mes . '-01';
+        $filtro['ate'] = date('Y-m-t', strtotime($filtro['de']));
+    } elseif ($tipo === 'ano') {
+        $ano = (string)($input['ano'] ?? date('Y'));
+        if (!preg_match('/^\d{4}$/', $ano) || (int)$ano < 1900) {
+            throw new InvalidArgumentException('Informe um ano válido.');
+        }
+        $filtro['ano'] = $ano;
+        $filtro['de'] = $ano . '-01-01';
+        $filtro['ate'] = $ano . '-12-31';
+    } else {
+        $inicio = (string)($input['inicio'] ?? date('Y-m-01'));
+        $fim = (string)($input['fim'] ?? $hoje);
+        if (!data_iso_valida($inicio) || !data_iso_valida($fim)) {
+            throw new InvalidArgumentException('Informe as datas inicial e final corretamente.');
+        }
+        if ($inicio > $fim) {
+            throw new InvalidArgumentException('A data inicial não pode ser posterior à data final.');
+        }
+        $filtro['inicio'] = $inicio;
+        $filtro['fim'] = $fim;
+        $filtro['de'] = $inicio;
+        $filtro['ate'] = $fim;
+    }
+
+    return $filtro;
+}
+
+function data_iso_valida(string $data): bool
+{
+    if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $data, $partes)) {
+        return false;
+    }
+    return checkdate((int)$partes[2], (int)$partes[3], (int)$partes[1]);
+}

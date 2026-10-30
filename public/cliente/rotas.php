@@ -48,10 +48,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('/cliente/rotas.php');
 }
 
-$st = $pdo->prepare('SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END)
-                                                FROM custos_rota c WHERE c.rota_id = r.id),0) custo
-                       FROM rotas r WHERE r.cliente_id = ? ORDER BY r.data_rota DESC, r.id DESC LIMIT 100');
-$st->execute([$cid]);
+$filtroErro = '';
+try {
+    $filtroRotas = ler_filtro_periodo($_GET, 'todos');
+} catch (InvalidArgumentException $e) {
+    $filtroRotas = ler_filtro_periodo([], 'todos');
+    $filtroErro = $e->getMessage();
+}
+
+$sqlRotas = 'SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END)
+                                     FROM custos_rota c WHERE c.rota_id = r.id),0) custo
+               FROM rotas r WHERE r.cliente_id = ?';
+$paramsRotas = [$cid];
+if ($filtroRotas['de'] !== null && $filtroErro === '') {
+    $sqlRotas .= ' AND r.data_rota BETWEEN ? AND ?';
+    $paramsRotas[] = $filtroRotas['de'];
+    $paramsRotas[] = $filtroRotas['ate'];
+}
+$sqlRotas .= ' ORDER BY r.data_rota DESC, r.id DESC';
+$st = $pdo->prepare($sqlRotas);
+$st->execute($paramsRotas);
 $rotas = $st->fetchAll();
 
 $editarId = (int)($_GET['editar'] ?? 0);
@@ -134,6 +150,47 @@ app_header($u, 'Rotas', 'Cadastre, edite e acompanhe os trajetos e valores', 'ro
 <div class="dsk-card">
   <div class="section-title"><i class="bi bi-list-ul"></i> Minhas rotas</div>
   <p class="text-dim" style="font-size:12.5px;">Toque numa rota para lançar ou ver os custos dela.</p>
+  <?php if ($filtroErro !== ''): ?>
+    <div class="alert alert-danger py-2 px-3" style="font-size:13.5px;border-radius:10px;"><?= h($filtroErro) ?></div>
+  <?php endif; ?>
+  <form method="get" class="mb-3" data-date-filter>
+    <div class="form-row align-items-end">
+      <div class="form-group col-md-3">
+        <label class="form-label" for="filtroRotasPeriodo">Filtrar histórico por</label>
+        <select class="custom-select" id="filtroRotasPeriodo" name="periodo">
+          <option value="todos" <?= $filtroRotas['tipo'] === 'todos' ? 'selected' : '' ?>>Todo o histórico</option>
+          <option value="dia" <?= $filtroRotas['tipo'] === 'dia' ? 'selected' : '' ?>>Dia específico</option>
+          <option value="mes" <?= $filtroRotas['tipo'] === 'mes' ? 'selected' : '' ?>>Mês</option>
+          <option value="ano" <?= $filtroRotas['tipo'] === 'ano' ? 'selected' : '' ?>>Ano</option>
+          <option value="intervalo" <?= $filtroRotas['tipo'] === 'intervalo' ? 'selected' : '' ?>>Período personalizado</option>
+        </select>
+      </div>
+      <div class="form-group col-md-3" data-period-field="dia">
+        <label class="form-label" for="filtroRotasDia">Data</label>
+        <input type="date" class="form-control" id="filtroRotasDia" name="dia" value="<?= h($filtroRotas['dia']) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="mes">
+        <label class="form-label" for="filtroRotasMes">Mês</label>
+        <input type="month" class="form-control" id="filtroRotasMes" name="mes" value="<?= h($filtroRotas['mes']) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="ano">
+        <label class="form-label" for="filtroRotasAno">Ano</label>
+        <input type="number" class="form-control" id="filtroRotasAno" name="ano" min="1900" max="9999" value="<?= h($filtroRotas['ano']) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="intervalo">
+        <label class="form-label" for="filtroRotasInicio">Data inicial</label>
+        <input type="date" class="form-control" id="filtroRotasInicio" name="inicio" value="<?= h($filtroRotas['inicio']) ?>">
+      </div>
+      <div class="form-group col-md-3" data-period-field="intervalo">
+        <label class="form-label" for="filtroRotasFim">Data final</label>
+        <input type="date" class="form-control" id="filtroRotasFim" name="fim" value="<?= h($filtroRotas['fim']) ?>">
+      </div>
+      <div class="form-group col-md-3">
+        <button type="submit" class="btn btn-outline-dsk" style="height:46px;"><i class="bi bi-funnel"></i> Filtrar histórico</button>
+        <a href="/cliente/rotas.php" class="btn btn-outline-dsk" style="height:46px;padding:.65rem 1rem;">Limpar</a>
+      </div>
+    </div>
+  </form>
   <div class="table-responsive">
     <table class="table-dsk">
       <thead><tr><th>Data</th><th>Rota</th><th>Km</th><th>R$/km</th><th>Receber</th><th>Custo</th><th>Lucro</th><th></th></tr></thead>
@@ -165,4 +222,5 @@ app_header($u, 'Rotas', 'Cadastre, edite e acompanhe os trajetos e valores', 'ro
 </div>
 <?php
 $extra = '<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="/assets/js/routes.js"></script>';
+$extra .= '<script src="/assets/js/date-filter.js"></script>';
 app_footer($extra);

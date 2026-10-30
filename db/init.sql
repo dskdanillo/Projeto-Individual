@@ -44,6 +44,8 @@ CREATE TABLE clientes (
   tipo_veiculo VARCHAR(40) DEFAULT NULL,
   modelo_veiculo VARCHAR(80) DEFAULT NULL,
   placa VARCHAR(10) DEFAULT NULL,
+  consumo_km_l DECIMAL(6,2) DEFAULT NULL,
+  preco_combustivel DECIMAL(8,3) DEFAULT NULL,
   valor_mensalidade DECIMAL(10,2) NOT NULL DEFAULT 49.90,
   dia_vencimento TINYINT UNSIGNED NOT NULL DEFAULT 10,
   criado_em TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,

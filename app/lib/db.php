@@ -21,6 +21,12 @@ function db(): PDO
     if (!$pdo->query("SHOW COLUMNS FROM rotas LIKE 'ida_volta'")->fetchColumn()) {
         $pdo->exec('ALTER TABLE rotas ADD COLUMN ida_volta TINYINT(1) NOT NULL DEFAULT 0 AFTER km');
     }
+    if (!$pdo->query("SHOW COLUMNS FROM clientes LIKE 'consumo_km_l'")->fetchColumn()) {
+        $pdo->exec('ALTER TABLE clientes ADD COLUMN consumo_km_l DECIMAL(6,2) DEFAULT NULL AFTER placa');
+    }
+    if (!$pdo->query("SHOW COLUMNS FROM clientes LIKE 'preco_combustivel'")->fetchColumn()) {
+        $pdo->exec('ALTER TABLE clientes ADD COLUMN preco_combustivel DECIMAL(8,3) DEFAULT NULL AFTER consumo_km_l');
+    }
     return $pdo;
 }
 

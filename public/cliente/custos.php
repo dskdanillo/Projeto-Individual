@@ -4,6 +4,12 @@ $u   = require_login('cliente');
 $cid = (int)$u['cliente_id'];
 $pdo = db();
 
+$st = $pdo->prepare('SELECT consumo_km_l, preco_combustivel FROM clientes WHERE id = ?');
+$st->execute([$cid]);
+$dadosCombustivel = $st->fetch() ?: ['consumo_km_l' => null, 'preco_combustivel' => null];
+$consumoKmL = (float)($dadosCombustivel['consumo_km_l'] ?? 0);
+$precoCombustivel = (float)($dadosCombustivel['preco_combustivel'] ?? 0);
+
 function rota_do_cliente(PDO $pdo, int $rid, int $cid): ?array
 {
     $st = $pdo->prepare('SELECT * FROM rotas WHERE id = ? AND cliente_id = ?');
@@ -21,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cat   = (string)($_POST['categoria'] ?? '');
         $valor = num_in($_POST['valor'] ?? '');
         $data  = (string)($_POST['data_custo'] ?? '');
+        if ($cat === 'Combustível' && $rota && $consumoKmL > 0 && $precoCombustivel > 0) {
+            $valor = round((float)$rota['km'] / $consumoKmL * $precoCombustivel, 2);
+        }
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)) {
             $data = date('Y-m-d');
         }
@@ -28,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('danger', 'Rota não encontrada.');
         } elseif (!in_array($cat, CATEGORIAS_CUSTO, true)) {
             flash('danger', 'Escolha uma categoria válida.');
+        } elseif ($cat === 'Combustível' && ($consumoKmL <= 0 || $precoCombustivel <= 0)) {
+            flash('danger', 'Cadastre o consumo do veículo e o preço do combustível em Dados pessoais para lançar este custo automaticamente.');
         } elseif ($valor <= 0) {
             flash('danger', 'Informe um valor maior que zero.');
         } else {
@@ -40,6 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cat   = (string)($_POST['categoria'] ?? '');
         $valor = num_in($_POST['valor'] ?? '');
         $data  = (string)($_POST['data_custo'] ?? '');
+        $rota = rota_do_cliente($pdo, $rid, $cid);
+        if ($cat === 'Combustível' && $rota && $consumoKmL > 0 && $precoCombustivel > 0) {
+            $valor = round((float)$rota['km'] / $consumoKmL * $precoCombustivel, 2);
+        }
         $dataValida = preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)
             && checkdate((int)substr($data, 5, 2), (int)substr($data, 8, 2), (int)substr($data, 0, 4));
 
@@ -50,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('danger', 'Custo não encontrado nesta rota.');
         } elseif (!in_array($cat, CATEGORIAS_CUSTO, true)) {
             flash('danger', 'Escolha uma categoria válida.');
+        } elseif ($cat === 'Combustível' && ($consumoKmL <= 0 || $precoCombustivel <= 0)) {
+            flash('danger', 'Cadastre o consumo do veículo e o preço do combustível em Dados pessoais para lançar este custo automaticamente.');
         } elseif ($valor <= 0) {
             flash('danger', 'Informe um valor maior que zero.');
         } elseif (!$dataValida) {
@@ -146,10 +163,14 @@ app_header($u, 'Custos da rota', $rota ? 'Lance o que você gastou para realizar
       <input type="hidden" name="acao" value="<?= $custoEditando ? 'atualizar' : 'criar' ?>">
       <input type="hidden" name="rota_id" value="<?= $rid ?>">
       <?php if ($custoEditando): ?><input type="hidden" name="id" value="<?= (int)$custoEditando['id'] ?>"><?php endif; ?>
+      <div id="custoForm" data-km="<?= h($rota['km']) ?>"
+           data-ida-volta="<?= $rota['ida_volta'] ? '1' : '0' ?>"
+           data-consumo-km-l="<?= $consumoKmL > 0 ? h($consumoKmL) : '' ?>"
+           data-preco-combustivel="<?= $precoCombustivel > 0 ? h($precoCombustivel) : '' ?>">
       <div class="form-row">
         <div class="form-group col-md-3">
-          <label class="form-label">Categoria</label>
-          <select name="categoria" class="custom-select" required>
+          <label class="form-label" for="categoria">Categoria</label>
+          <select id="categoria" name="categoria" class="custom-select" required>
             <?php foreach (CATEGORIAS_CUSTO as $c): ?><option value="<?= h($c) ?>" <?= ($custoEditando['categoria'] ?? '') === $c ? 'selected' : '' ?>><?= h($c) ?></option><?php endforeach; ?>
           </select>
         </div>
@@ -158,13 +179,15 @@ app_header($u, 'Custos da rota', $rota ? 'Lance o que você gastou para realizar
           <input type="text" name="descricao" class="form-control" maxlength="200" placeholder="Ex: Posto Shell" value="<?= h($custoEditando['descricao'] ?? '') ?>">
         </div>
         <div class="form-group col-6 col-md-2">
-          <label class="form-label"><?= $rota['ida_volta'] ? 'Valor por trecho (R$)' : 'Valor (R$)' ?></label>
-          <input type="text" inputmode="decimal" name="valor" class="form-control" placeholder="0,00" value="<?= $custoEditando ? h(number_format((float)$custoEditando['valor'], 2, ',', '.')) : '' ?>" required>
+          <label class="form-label" id="valorLabel"><?= $rota['ida_volta'] ? 'Valor por trecho (R$)' : 'Valor (R$)' ?></label>
+          <input type="text" inputmode="decimal" id="valorCusto" name="valor" class="form-control" placeholder="0,00" value="<?= $custoEditando ? h(number_format((float)$custoEditando['valor'], 2, ',', '.')) : '' ?>" required>
+          <small id="combustivelInfo" class="form-text text-dim" aria-live="polite"></small>
         </div>
         <div class="form-group col-6 col-md-3">
           <label class="form-label">Data</label>
           <input type="date" name="data_custo" class="form-control" value="<?= h($custoEditando['data_custo'] ?? $rota['data_rota']) ?>">
         </div>
+      </div>
       </div>
       <button class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-check2-circle"></i> <?= $custoEditando ? 'Salvar alterações' : 'Lançar custo' ?></button>
       <?php if ($custoEditando): ?> <a href="/cliente/custos.php?rota_id=<?= $rid ?>" class="btn btn-outline-dsk">Cancelar</a><?php endif; ?>
@@ -201,4 +224,4 @@ app_header($u, 'Custos da rota', $rota ? 'Lance o que você gastou para realizar
     </table>
   </div>
 </div>
-<?php app_footer();
+<?php app_footer('<script src="/assets/js/costs.js"></script>');
