@@ -19,8 +19,12 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
      app/lib/helpers.php          (alterado: cidade e telefone)
      app/lib/auth.php             (alterado: bloqueio de conta suspensa)
      app/lib/layout.php           (alterado: menu do admin)
+     app/lib/password_reset.php   (alterado: solicitações e senhas temporárias)
+     public/index.php             (alterado: link "Esqueci minha senha")
      public/cadastro.php          (alterado: validacao de cadastro)
+     public/recuperar-senha.php   (NOVO: solicitar ou concluir recuperação)
      public/admin/dashboard.php   (substitui o anterior)
+     public/admin/recuperacoes-senha.php (NOVO: atender solicitações via WhatsApp)
      public/admin/relatorio-clientes.php (NOVO)
      public/admin/clientes.php    (NOVO)
      public/admin/financeiro.php  (NOVO)
@@ -28,6 +32,13 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
      public/cliente/dados-pessoais.php (NOVO)
      public/assets/css/style.css  (estilos administrativos)
      public/assets/js/language.js (NOVO: seletor de idioma)
+
+   A recuperação de senha não usa e-mail/SMTP. O motorista solicita ajuda
+   pela tela de login; o administrador recebe o alerta no Dashboard e, em
+   Recuperação de senhas, gera uma senha temporária e abre o WhatsApp cadastrado
+   com a mensagem pronta para enviar. Depois de entrar, o motorista altera a
+   senha em Dados pessoais. A tabela de solicitações é criada automaticamente
+   e também consta em db/init.sql para novas instalações.
 
    A tela Clientes permite criar, editar e excluir cadastros, alterar dados
    pessoais e redefinir o acesso/senha. Valores e cobranças de mensalidade ficam

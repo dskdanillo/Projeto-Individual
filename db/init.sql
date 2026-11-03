@@ -36,6 +36,23 @@ CREATE TABLE usuarios (
   CONSTRAINT ck_usuarios_admin_principal CHECK (perfil <> 'admin' OR email = 'dsk.danillo@gmail.com')
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE password_reset_requests (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id INT UNSIGNED DEFAULT NULL,
+  email_hash CHAR(64) NOT NULL,
+  request_ip_hash CHAR(64) DEFAULT NULL,
+  status ENUM('pending','completed','ignored') NOT NULL DEFAULT 'pending',
+  requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  handled_at DATETIME DEFAULT NULL,
+  handled_by INT UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY idx_password_reset_request_email (email_hash, requested_at),
+  KEY idx_password_reset_request_ip (request_ip_hash, requested_at),
+  KEY idx_password_reset_request_status (status, requested_at),
+  CONSTRAINT fk_password_reset_request_user FOREIGN KEY (user_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+  CONSTRAINT fk_password_reset_request_admin FOREIGN KEY (handled_by) REFERENCES usuarios (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE clientes (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   usuario_id INT UNSIGNED NOT NULL,

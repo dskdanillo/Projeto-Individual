@@ -1,8 +1,10 @@
 <?php
 require __DIR__ . '/../../app/bootstrap.php';
 require_once APP_PATH . '/lib/admin.php';
+require_once APP_PATH . '/lib/password_reset.php';
 $u    = require_login('admin');
 $pdo  = db();
+password_reset_ensure_table($pdo);
 
 /** Atalho: executa uma consulta e devolve o primeiro valor. */
 $val = function (string $sql, array $p = []) use ($pdo) {
@@ -17,6 +19,7 @@ $inadimp  = (int)$val("SELECT COUNT(*) FROM usuarios WHERE perfil = 'cliente' AN
 $inativos = (int)$val("SELECT COUNT(*) FROM usuarios WHERE perfil = 'cliente' AND status = 'inativo'");
 $novosMes = (int)$val("SELECT COUNT(*) FROM usuarios WHERE perfil = 'cliente' AND criado_em >= ?", [date('Y-m-01') . ' 00:00:00']);
 $rotas    = (int)$val('SELECT COUNT(*) FROM rotas');
+$recuperacoes = (int)$val("SELECT COUNT(*) FROM password_reset_requests WHERE status = 'pending'");
 
 $ultimos = $pdo->query("SELECT u.id, u.nome, u.status, u.criado_em, c.cidade
                           FROM usuarios u LEFT JOIN clientes c ON c.usuario_id = u.id
@@ -43,6 +46,13 @@ app_header($u, 'Painel administrativo', 'Visão geral dos clientes da plataforma
   </div>
   <?php endforeach; ?>
 </div>
+
+<?php if ($recuperacoes > 0): ?>
+<div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between" style="gap:12px;border-radius:12px;">
+  <span><i class="bi bi-bell-fill mr-2"></i><strong><?= $recuperacoes ?></strong> solicitação(ões) de recuperação de senha aguardando atendimento.</span>
+  <a class="btn btn-sm btn-warning" href="/admin/recuperacoes-senha.php">Ver solicitações</a>
+</div>
+<?php endif; ?>
 
 <div class="row">
   <div class="col-6 col-md-6 mb-3"><div class="dsk-card kpi-card">

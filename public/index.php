@@ -66,6 +66,9 @@ echo theme_switch();
       <button type="submit" class="btn btn-dsk btn-dsk-primary w-100 mb-2 mt-3">
         <i class="bi bi-box-arrow-in-right"></i> Entrar
       </button>
+      <a href="/recuperar-senha.php" class="btn btn-dsk btn-dsk-link w-100 mb-2">
+        <i class="bi bi-key"></i> Esqueci minha senha
+      </a>
       <a href="/cadastro.php" class="btn btn-dsk btn-dsk-ghost w-100" id="linkCadastro">
         <i class="bi bi-person-plus"></i> Criar conta de motorista
       </a>

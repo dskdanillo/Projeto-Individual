@@ -18,6 +18,31 @@ $erros = [];
 $form = $dados;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
+    if (($_POST['action'] ?? '') === 'change_password') {
+        $senhaAtual = (string)($_POST['senha_atual'] ?? '');
+        $senhaNova = (string)($_POST['senha_nova'] ?? '');
+        $confirmacao = (string)($_POST['confirmacao_senha'] ?? '');
+        $check = $pdo->prepare("SELECT senha FROM usuarios WHERE id = ? AND perfil = 'cliente'");
+        $check->execute([$id]);
+        $senhaHash = $check->fetchColumn();
+
+        if (!is_string($senhaHash) || !password_verify($senhaAtual, $senhaHash)) {
+            $erros[] = 'A senha atual está incorreta.';
+        }
+        if (mb_strlen($senhaNova, 'UTF-8') < 8) {
+            $erros[] = 'A nova senha precisa ter pelo menos 8 caracteres.';
+        }
+        if ($senhaNova !== $confirmacao) {
+            $erros[] = 'As senhas não conferem.';
+        }
+
+        if (!$erros) {
+            $pdo->prepare("UPDATE usuarios SET senha = ? WHERE id = ? AND perfil = 'cliente'")
+                ->execute([password_hash($senhaNova, PASSWORD_DEFAULT), $id]);
+            flash('success', 'Sua senha foi alterada.');
+            redirect('/cliente/dados-pessoais.php');
+        }
+    } else {
     $form = [
         'nome' => mb_substr(trim((string)($_POST['nome'] ?? '')), 0, 150),
         'email' => mb_strtolower(trim((string)($_POST['email'] ?? ''))),
@@ -102,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $erros[] = 'Este e-mail ou telefone já está cadastrado em outra conta.';
         }
     }
+    }
 }
 
 app_header($u, 'Dados pessoais', 'Atualize suas informações de cadastro', 'dados-pessoais');
@@ -113,6 +139,7 @@ app_header($u, 'Dados pessoais', 'Atualize suas informações de cadastro', 'dad
 <div class="dsk-card">
   <form method="post" autocomplete="on">
     <?= csrf_field() ?>
+    <input type="hidden" name="action" value="save_profile">
     <div class="form-step-label"><i class="bi bi-person-vcard"></i> Cadastro pessoal</div>
     <div class="form-row">
       <div class="form-group col-md-6">
@@ -165,6 +192,29 @@ app_header($u, 'Dados pessoais', 'Atualize suas informações de cadastro', 'dad
     </div>
 
     <button type="submit" class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-check2-circle"></i> Salvar dados</button>
+  </form>
+</div>
+<div class="dsk-card mt-3">
+  <div class="section-title"><i class="bi bi-shield-lock"></i> Alterar senha</div>
+  <p class="text-dim">Depois de entrar com a senha temporária enviada pelo administrador, troque-a por uma senha pessoal.</p>
+  <form method="post" autocomplete="off">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="change_password">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label class="form-label" for="senha_atual">Senha atual</label>
+        <input type="password" class="form-control" id="senha_atual" name="senha_atual" autocomplete="current-password" required>
+      </div>
+      <div class="form-group col-md-4">
+        <label class="form-label" for="senha_nova">Nova senha</label>
+        <input type="password" class="form-control" id="senha_nova" name="senha_nova" minlength="8" autocomplete="new-password" required>
+      </div>
+      <div class="form-group col-md-4">
+        <label class="form-label" for="confirmacao_senha">Confirme a nova senha</label>
+        <input type="password" class="form-control" id="confirmacao_senha" name="confirmacao_senha" minlength="8" autocomplete="new-password" required>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-key"></i> Alterar senha</button>
   </form>
 </div>
 <?php app_footer();

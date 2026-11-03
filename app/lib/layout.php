@@ -7,6 +7,7 @@ function nav_items(string $perfil): array
         return [
             ['/admin/dashboard.php', 'dashboard', 'bi-grid-1x2-fill', 'Dashboard'],
             ['/admin/clientes.php', 'clientes', 'bi-people-fill', 'Clientes'],
+            ['/admin/recuperacoes-senha.php', 'recuperacoes-senha', 'bi-key-fill', 'Recuperação de senhas'],
             ['/admin/financeiro.php', 'financeiro', 'bi-cash-coin', 'Financeiro'],
         ];
     }
