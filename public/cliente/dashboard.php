@@ -4,21 +4,30 @@ $u   = require_login('cliente');
 $cid = (int)$u['cliente_id'];
 $pdo = db();
 
-$p = in_array($_GET['p'] ?? '', ['dia', 'mes', 'ano'], true) ? $_GET['p'] : 'mes';
-[$ini, $fim] = periodo_range($p);
+$p = in_array($_GET['p'] ?? '', ['todos', 'dia', 'mes', 'ano'], true) ? $_GET['p'] : 'todos';
+$wherePeriodo = '';
+$wherePeriodoRotas = '';
+$paramsPeriodo = [$cid];
+if ($p !== 'todos') {
+    [$ini, $fim] = periodo_range($p);
+    $wherePeriodo = ' AND data_rota BETWEEN ? AND ?';
+    $wherePeriodoRotas = ' AND r.data_rota BETWEEN ? AND ?';
+    $paramsPeriodo[] = $ini;
+    $paramsPeriodo[] = $fim;
+}
 
 // receita, km e nº de rotas
 $st = $pdo->prepare('SELECT COALESCE(SUM(valor_receber),0) receita,
                             COALESCE(SUM(km * CASE WHEN ida_volta = 1 THEN 2 ELSE 1 END),0) km, COUNT(*) n
-                       FROM rotas WHERE cliente_id = ? AND data_rota BETWEEN ? AND ?');
-$st->execute([$cid, $ini, $fim]);
+                       FROM rotas WHERE cliente_id = ?' . $wherePeriodo);
+$st->execute($paramsPeriodo);
 $tot = $st->fetch();
 
 // custos lançados nas rotas do período
 $st = $pdo->prepare('SELECT COALESCE(SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END),0) FROM custos_rota c
                        JOIN rotas r ON r.id = c.rota_id
-                      WHERE r.cliente_id = ? AND r.data_rota BETWEEN ? AND ?');
-$st->execute([$cid, $ini, $fim]);
+                      WHERE r.cliente_id = ?' . $wherePeriodoRotas);
+$st->execute($paramsPeriodo);
 $custo = (float)$st->fetchColumn();
 
 $receita = (float)$tot['receita'];
@@ -29,17 +38,17 @@ $lucro   = $receita - $custo;
 // custos por categoria
 $st = $pdo->prepare('SELECT c.categoria, SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END) total FROM custos_rota c
                        JOIN rotas r ON r.id = c.rota_id
-                      WHERE r.cliente_id = ? AND r.data_rota BETWEEN ? AND ?
+                      WHERE r.cliente_id = ?' . $wherePeriodoRotas . '
                       GROUP BY c.categoria ORDER BY total DESC');
-$st->execute([$cid, $ini, $fim]);
+$st->execute($paramsPeriodo);
 $cats = $st->fetchAll();
 
 // últimas rotas do período
 $st = $pdo->prepare('SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END)
                                                 FROM custos_rota c WHERE c.rota_id = r.id),0) custo
-                       FROM rotas r WHERE r.cliente_id = ? AND r.data_rota BETWEEN ? AND ?
+                       FROM rotas r WHERE r.cliente_id = ?' . $wherePeriodoRotas . '
                       ORDER BY r.data_rota DESC, r.id DESC LIMIT 8');
-$st->execute([$cid, $ini, $fim]);
+$st->execute($paramsPeriodo);
 $rotas = $st->fetchAll();
 
 // Últimas mensalidades para o cliente acompanhar as cobranças da plataforma
@@ -52,12 +61,13 @@ $st->execute([$cid]);
 $mensalidades = $st->fetchAll();
 
 $right = '<form method="get"><select name="p" class="custom-select" style="height:42px;" onchange="this.form.submit()">';
-foreach (['dia' => 'Hoje', 'mes' => 'Este mês', 'ano' => 'Este ano'] as $k => $l) {
+foreach (['todos' => 'Todo o histórico', 'dia' => 'Hoje', 'mes' => 'Este mês', 'ano' => 'Este ano'] as $k => $l) {
     $right .= '<option value="' . $k . '"' . ($k === $p ? ' selected' : '') . '>' . $l . '</option>';
 }
 $right .= '</select></form>';
 
-app_header($u, 'Olá, ' . h(explode(' ', $u['nome'])[0]), 'Resumo das suas rotas e custos · ' . periodo_label($p), 'dashboard', $right);
+$periodoTitulo = $p === 'todos' ? 'Todo o histórico' : periodo_label($p);
+app_header($u, 'Olá, ' . h(explode(' ', $u['nome'])[0]), 'Resumo das suas rotas e custos · ' . $periodoTitulo, 'dashboard', $right);
 $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--info'];
 ?>
 <div class="row">
@@ -124,8 +134,8 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
 </div>
 
 <div class="dsk-card mb-3">
-  <div class="section-title"><i class="bi bi-file-earmark-spreadsheet"></i> Gerar relatório</div>
-  <p class="text-dim" style="font-size:12.5px;">Baixe uma planilha compatível com Excel, com as rotas, os custos por categoria e o lucro do período.</p>
+  <div class="section-title"><i class="bi bi-file-earmark-pdf"></i> Gerar relatório</div>
+  <p class="text-dim" style="font-size:12.5px;">Baixe um PDF organizado com o resumo das rotas, faturamento, gastos por categoria e lucro no período escolhido.</p>
   <form method="get" action="/cliente/relatorio.php" data-date-filter>
     <div class="form-row align-items-end">
       <div class="form-group col-md-3">
@@ -158,7 +168,7 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
         <input type="date" class="form-control" id="relatorioFim" name="fim" value="<?= h(date('Y-m-d')) ?>">
       </div>
       <div class="form-group col-md-3">
-        <button type="submit" class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-download"></i> Gerar relatório</button>
+        <button type="submit" class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-file-earmark-pdf-fill"></i> Baixar relatório PDF</button>
       </div>
     </div>
   </form>
@@ -196,18 +206,19 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
 
 <div class="dsk-card">
   <div class="section-title"><i class="bi bi-map-fill"></i> Últimas rotas do período</div>
+  <p class="text-dim" style="font-size:12.5px;">Exibindo até 8 rotas mais recentes. Os totais acima consideram todas as rotas do período selecionado.</p>
   <div class="table-responsive">
-    <table class="table-dsk">
+    <table class="table-dsk route-history">
       <thead><tr><th>Data</th><th>Rota</th><th>Km</th><th>Receita</th><th>Custo</th><th>Lucro</th></tr></thead>
       <tbody>
       <?php foreach ($rotas as $r): $l = $r['valor_receber'] - $r['custo']; ?>
         <tr data-href="/cliente/custos.php?rota_id=<?= (int)$r['id'] ?>">
-          <td class="font-mono"><?= date_br($r['data_rota']) ?></td>
-          <td><?= h($r['origem']) ?> <i class="bi bi-arrow-right text-faint"></i> <?= h($r['destino']) ?></td>
-          <td class="font-mono"><?= number_format($r['km'] * ($r['ida_volta'] ? 2 : 1), 1, ',', '.') ?></td>
-          <td class="font-mono"><?= brl($r['valor_receber']) ?></td>
-          <td class="font-mono"><?= brl($r['custo']) ?></td>
-          <td class="font-mono" style="color:var(--<?= $l >= 0 ? 'success' : 'danger' ?>);"><?= brl($l) ?></td>
+          <td class="font-mono" data-label="Data"><?= date_br($r['data_rota']) ?></td>
+          <td data-label="Rota"><?= h($r['origem']) ?> <i class="bi bi-arrow-right text-faint"></i> <?= h($r['destino']) ?></td>
+          <td class="font-mono" data-label="Km"><?= number_format($r['km'] * ($r['ida_volta'] ? 2 : 1), 1, ',', '.') ?></td>
+          <td class="font-mono" data-label="Receita"><?= brl($r['valor_receber']) ?></td>
+          <td class="font-mono" data-label="Custo"><?= brl($r['custo']) ?></td>
+          <td class="font-mono" data-label="Lucro" style="color:var(--<?= $l >= 0 ? 'success' : 'danger' ?>);"><?= brl($l) ?></td>
         </tr>
       <?php endforeach; if (!$rotas): ?>
         <tr><td colspan="6"><div class="empty-state"><i class="bi bi-signpost"></i>Nenhuma rota no período.</div></td></tr>

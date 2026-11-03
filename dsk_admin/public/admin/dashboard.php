@@ -22,7 +22,8 @@ $ultimos = $pdo->query("SELECT u.id, u.nome, u.status, u.criado_em, c.cidade
                           FROM usuarios u LEFT JOIN clientes c ON c.usuario_id = u.id
                          WHERE u.perfil = 'cliente' ORDER BY u.criado_em DESC, u.id DESC LIMIT 6")->fetchAll();
 
-app_header($u, 'Painel administrativo', 'Visão geral dos clientes da plataforma', 'dashboard');
+$relatorio = '<a href="/admin/relatorio-clientes.php" class="btn btn-accent px-3" style="height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;"><i class="bi bi-file-earmark-pdf-fill"></i> Baixar relatório PDF</a>';
+app_header($u, 'Painel administrativo', 'Visão geral dos clientes da plataforma', 'dashboard', $relatorio);
 ?>
 <div class="row">
   <?php foreach ([

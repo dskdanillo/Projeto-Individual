@@ -40,6 +40,14 @@ function theme_switch(bool $inline = false): string
     return '<div class="theme-switch"' . ($inline ? ' style="position:static;"' : '') . '>
       <button type="button" data-theme-btn="dark" title="Tema noite"><i class="bi bi-moon-stars-fill"></i></button>
       <button type="button" data-theme-btn="light" title="Tema dia"><i class="bi bi-sun-fill"></i></button>
+      <label class="language-switch">
+        <span class="sr-only">Idioma</span>
+        <select data-language-select aria-label="Idioma">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </label>
     </div>';
 }
 
@@ -50,6 +58,7 @@ function scripts_base(string $extra = ''): void
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/theme.js"></script>
 <script src="/assets/js/app.js"></script>
+<script src="/assets/js/language.js"></script>
 <?= $extra ?>
 </body>
 </html>

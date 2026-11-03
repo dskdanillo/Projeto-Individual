@@ -175,8 +175,10 @@ $meses = $st->fetchAll();
 $clientes = $pdo->query("SELECT c.id, u.nome FROM clientes c JOIN usuarios u ON u.id = c.usuario_id WHERE u.perfil = 'cliente' ORDER BY u.nome")->fetchAll();
 
 $qs = $_SERVER['QUERY_STRING'] ?? '';
-$topo = '<button type="button" class="btn btn-outline-dsk px-3" style="height:42px;" data-toggle="modal" data-target="#modalGerar"><i class="bi bi-magic"></i> Gerar mensalidades</button>
-         <button type="button" class="btn btn-accent px-3" style="height:42px;" data-toggle="modal" data-target="#modalNova"><i class="bi bi-plus-circle-fill"></i> Nova cobrança</button>';
+$topo = '<div class="finance-toolbar">
+           <button type="button" class="btn btn-outline-dsk px-3" data-toggle="modal" data-target="#modalGerar"><i class="bi bi-magic"></i> Gerar mensalidades</button>
+           <button type="button" class="btn btn-accent px-3" data-toggle="modal" data-target="#modalNova"><i class="bi bi-plus-circle-fill"></i> Nova cobrança</button>
+         </div>';
 app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clientes', 'financeiro', $topo);
 ?>
 <div class="row">
@@ -230,21 +232,21 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
   <div class="section-title"><i class="bi bi-list-check"></i> Cobranças (<?= count($lista) ?>)</div>
   <p class="text-dim" style="font-size:12.5px;">Gere a mensalidade do mês e compartilhe os dados de pagamento com o cliente pelo canal habitual. Depois, registre aqui quando o pagamento for confirmado.</p>
   <div class="table-responsive">
-    <table class="table-dsk">
+    <table class="table-dsk finance-charges">
       <thead><tr><th>Cliente</th><th>Referência</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead>
       <tbody>
       <?php foreach ($lista as $m): $s = situacao_mensalidade($m, $hoje); ?>
         <tr>
-          <td style="min-width:160px;">
+          <td data-label="Cliente" style="min-width:160px;">
             <a class="name-link" href="/admin/clientes.php?editar=<?= (int)$m['usuario_id'] ?>"><?= h($m['nome']) ?></a>
             <?php if ($m['status'] !== 'ativo'): ?><div><?= badge_conta($m['status']) ?></div><?php endif; ?>
           </td>
-          <td class="font-mono"><?= h(mes_br($m['referencia'])) ?></td>
-          <td class="font-mono"><?= h(date_br($m['vencimento'])) ?><?php if ($s === 'atrasada'): ?> <small style="color:var(--danger);"><?= dias_atraso($m['vencimento'], $hoje) ?> d</small><?php endif; ?></td>
-          <td class="font-mono"><?= brl($m['valor']) ?></td>
-          <td><?= badge_mensalidade($s) ?></td>
-          <td class="font-mono text-dim"><?= $m['pago_em'] ? h(date_br($m['pago_em'])) . ' · ' . h($m['forma_pagamento']) : '—' ?></td>
-          <td class="text-right" style="white-space:nowrap;">
+          <td class="font-mono" data-label="Referência"><?= h(mes_br($m['referencia'])) ?></td>
+          <td class="font-mono" data-label="Vencimento"><?= h(date_br($m['vencimento'])) ?><?php if ($s === 'atrasada'): ?> <small style="color:var(--danger);"><?= dias_atraso($m['vencimento'], $hoje) ?> d</small><?php endif; ?></td>
+          <td class="font-mono" data-label="Valor"><?= brl($m['valor']) ?></td>
+          <td data-label="Situação"><?= badge_mensalidade($s) ?></td>
+          <td class="font-mono text-dim" data-label="Pagamento"><?= $m['pago_em'] ? h(date_br($m['pago_em'])) . ' · ' . h($m['forma_pagamento']) : '—' ?></td>
+          <td class="text-right" data-label="" style="white-space:nowrap;">
             <?php if ($s !== 'paga'): ?>
               <button type="button" class="btn btn-sm btn-accent" style="width:auto;" data-toggle="modal" data-target="#modalBaixa"
                       data-id="<?= (int)$m['id'] ?>" data-nome="<?= h($m['nome']) ?>" data-valor="<?= h(brl($m['valor'])) ?>"

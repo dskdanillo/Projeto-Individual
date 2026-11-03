@@ -45,7 +45,7 @@ function require_login(string $perfil): array
 }
 
 /** Retorna null se OK, ou a mensagem de erro. */
-function do_login(string $email, string $senha, string $perfil): ?string
+function do_login(string $email, string $senha): ?string
 {
     $st = db()->prepare('SELECT * FROM usuarios WHERE email = ?');
     $st->execute([mb_strtolower(trim($email))]);
@@ -60,12 +60,6 @@ function do_login(string $email, string $senha, string $perfil): ?string
     if ($u['status'] !== 'ativo') {
         return 'Esta conta está inativa.';
     }
-    if ($u['perfil'] !== $perfil) {
-        return $perfil === 'admin'
-            ? 'Esta conta não é de administrador. Use a aba "Motorista".'
-            : 'Esta conta é de administrador. Use a aba "Administrador".';
-    }
-
     session_regenerate_id(true);
     $_SESSION['uid'] = (int)$u['id'];
     return null;

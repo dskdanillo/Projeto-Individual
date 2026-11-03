@@ -21,11 +21,13 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
      app/lib/layout.php           (alterado: menu do admin)
      public/cadastro.php          (alterado: validacao de cadastro)
      public/admin/dashboard.php   (substitui o anterior)
+     public/admin/relatorio-clientes.php (NOVO)
      public/admin/clientes.php    (NOVO)
      public/admin/financeiro.php  (NOVO)
      scripts/gerar_mensalidades.php (NOVO)
      public/cliente/dados-pessoais.php (NOVO)
      public/assets/css/style.css  (estilos administrativos)
+     public/assets/js/language.js (NOVO: seletor de idioma)
 
    A tela Clientes permite criar, editar e excluir cadastros, alterar dados
    pessoais e redefinir o acesso/senha. Valores e cobranças de mensalidade ficam

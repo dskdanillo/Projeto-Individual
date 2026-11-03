@@ -7,13 +7,14 @@ if ($u = current_user()) {
 }
 
 $erro = null;
-$perfil = ($_POST['perfil'] ?? 'cliente') === 'admin' ? 'admin' : 'cliente';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
-    $erro = do_login((string)($_POST['email'] ?? ''), (string)($_POST['senha'] ?? ''), $perfil);
+    $erro = do_login((string)($_POST['email'] ?? ''), (string)($_POST['senha'] ?? ''));
     if ($erro === null) {
-        redirect(home_for($perfil));
+        $st = db()->prepare('SELECT perfil FROM usuarios WHERE id = ?');
+        $st->execute([$_SESSION['uid']]);
+        redirect(home_for((string)$st->fetchColumn()));
     }
 }
 
@@ -22,6 +23,18 @@ echo theme_switch();
 ?>
 <div class="auth-shell">
   <div class="auth-card">
+    <svg class="login-mark" viewBox="0 0 320 112" role="img" aria-label="DSK">
+      <defs>
+        <linearGradient id="login-mark-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="var(--accent)"/>
+          <stop offset="100%" stop-color="var(--accent-2)"/>
+        </linearGradient>
+      </defs>
+      <circle class="login-mark__orbit" cx="160" cy="56" r="44"/>
+      <path class="login-mark__route" d="M18 82 C65 82 66 29 111 29 S165 83 211 83 S255 34 302 34"/>
+      <circle class="login-mark__pin" cx="302" cy="34" r="5"/>
+      <text class="login-mark__letters" x="160" y="69" text-anchor="middle">DSK</text>
+    </svg>
     <div class="brand-mark">
       <div>
         <p class="brand-title">DSK <span class="text-accent">·</span> Gestão de Custo</p>
@@ -38,12 +51,7 @@ echo theme_switch();
 
     <form method="post" autocomplete="off">
       <?= csrf_field() ?>
-      <input type="hidden" name="perfil" id="perfil" value="<?= h($perfil) ?>">
-
-      <div class="seg mb-3" role="tablist">
-        <button type="button" data-perfil="cliente" class="<?= $perfil === 'cliente' ? 'active' : '' ?>"><i class="bi bi-person-badge"></i> Motorista</button>
-        <button type="button" data-perfil="admin" class="<?= $perfil === 'admin' ? 'active' : '' ?>"><i class="bi bi-shield-lock"></i> Administrador</button>
-      </div>
+      <p class="text-dim mb-3" style="font-size:13px;">Entre com seu e-mail e senha.</p>
 
       <div class="input-wrap">
         <i class="bi bi-envelope"></i>
@@ -67,15 +75,6 @@ echo theme_switch();
 </div>
 <?php
 scripts_base('<script>
-document.querySelectorAll(".seg [data-perfil]").forEach(function(b){
-  b.addEventListener("click", function(){
-    document.querySelectorAll(".seg button").forEach(function(x){ x.classList.remove("active"); });
-    b.classList.add("active");
-    document.getElementById("perfil").value = b.dataset.perfil;
-    document.getElementById("linkCadastro").style.display = b.dataset.perfil === "admin" ? "none" : "flex";
-  });
-});
-document.getElementById("linkCadastro").style.display = document.getElementById("perfil").value === "admin" ? "none" : "flex";
 document.getElementById("togglePass").addEventListener("click", function(){
   var i = document.getElementById("senha"), ic = this.querySelector("i");
   if (i.type === "password") { i.type = "text"; ic.className = "bi bi-eye-slash"; }
