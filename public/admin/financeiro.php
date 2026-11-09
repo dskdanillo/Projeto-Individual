@@ -221,8 +221,8 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
         </select>
       </div>
       <div class="form-group col-md-2 d-flex" style="gap:8px;">
-        <button class="btn btn-accent flex-fill" style="height:42px;"><i class="bi bi-funnel-fill"></i> Filtrar</button>
-        <a href="/admin/financeiro.php" class="btn btn-outline-dsk" style="height:42px;padding-top:.6rem;" title="Voltar ao mês atual"><i class="bi bi-x-lg"></i></a>
+        <button class="btn btn-accent flex-fill"><i class="bi bi-funnel-fill"></i> Filtrar</button>
+        <a href="/admin/financeiro.php" class="btn btn-outline-dsk" title="Voltar ao mês atual"><i class="bi bi-x-lg"></i></a>
       </div>
     </div>
   </form>

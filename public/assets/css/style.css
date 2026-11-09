@@ -371,6 +371,27 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
 .btn-accent:hover{ filter:brightness(1.08); color:#101a30; }
 .btn-outline-dsk{ border:1px solid var(--border-strong); color: var(--text); border-radius:10px; background:transparent; font-weight:600; }
 .btn-outline-dsk:hover{ border-color: var(--accent); color: var(--accent); }
+.filter-bar .form-control, .filter-bar .custom-select{ height:42px; }
+.filter-bar .form-group.d-flex .btn,
+.filter-bar .form-group.d-flex a{
+  height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.report-download-button{
+  height:38px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+@media (min-width:576px){
+  .cost-entry-row .form-label{
+    min-height:2.5em;
+    display:flex;
+    align-items:flex-end;
+  }
+}
 
 .modal-content{ background: var(--surface); border:1px solid var(--border); color: var(--text); border-radius: var(--radius-md); }
 .modal-header, .modal-footer{ border-color: var(--border); }
@@ -439,6 +460,7 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
    ============================================================ */
 @media (max-width: 767px){
   .form-control, .custom-select{ font-size:16px; min-height:46px; }   /* evita zoom no Android */
+  .report-download-button{ height:46px; }
   .main-content{ padding:16px 12px 40px; }
   .topbar .page-title{ font-size:19px; }
   .kpi-card .kpi-value{ font-size:19px; }
@@ -496,6 +518,10 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
     padding-right:0;
     margin-bottom:12px;
   }
+  .filter-bar .form-control,
+  .filter-bar .custom-select,
+  .filter-bar .form-group.d-flex .btn,
+  .filter-bar .form-group.d-flex a{ height:46px; }
   .filter-bar .form-group.d-flex{ align-items:stretch; }
   .filter-bar .form-group.d-flex .btn-accent{ width:auto; }
   .filter-bar .form-group.d-flex a{ min-width:46px; text-align:center; }
@@ -549,6 +575,13 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
     border-bottom:0;
   }
   .finance-charges tbody > tr > td[colspan]::before{ display:none; }
+}
+
+@media (max-width: 575px){
+  .cost-entry-row .form-group.col-6{
+    flex:0 0 100%;
+    max-width:100%;
+  }
 }
 
 /* Área do administrador */

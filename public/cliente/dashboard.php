@@ -168,7 +168,7 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
         <input type="date" class="form-control" id="relatorioFim" name="fim" value="<?= h(date('Y-m-d')) ?>">
       </div>
       <div class="form-group col-md-3">
-        <button type="submit" class="btn btn-accent px-4" style="height:46px;"><i class="bi bi-file-earmark-pdf-fill"></i> Baixar relatório PDF</button>
+        <button type="submit" class="btn btn-accent px-4 report-download-button"><i class="bi bi-file-earmark-pdf-fill"></i> Baixar relatório PDF</button>
       </div>
     </div>
   </form>

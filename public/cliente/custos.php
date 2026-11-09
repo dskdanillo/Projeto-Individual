@@ -167,7 +167,7 @@ app_header($u, 'Custos da rota', $rota ? 'Lance o que você gastou para realizar
            data-ida-volta="<?= $rota['ida_volta'] ? '1' : '0' ?>"
            data-consumo-km-l="<?= $consumoKmL > 0 ? h($consumoKmL) : '' ?>"
            data-preco-combustivel="<?= $precoCombustivel > 0 ? h($precoCombustivel) : '' ?>">
-      <div class="form-row">
+      <div class="form-row cost-entry-row">
         <div class="form-group col-md-3">
           <label class="form-label" for="categoria">Categoria</label>
           <select id="categoria" name="categoria" class="custom-select" required>

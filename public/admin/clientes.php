@@ -373,8 +373,8 @@ app_header($u, 'Clientes', 'Controle de acesso e cadastro de todos os clientes',
         </select>
       </div>
       <div class="form-group col-md-3 d-flex" style="gap:8px;">
-        <button class="btn btn-accent flex-fill" style="height:42px;"><i class="bi bi-search"></i> Filtrar</button>
-        <?php if ($q !== '' || $fs !== ''): ?><a href="/admin/clientes.php" class="btn btn-outline-dsk" style="height:42px;padding-top:.6rem;" title="Limpar filtros"><i class="bi bi-x-lg"></i></a><?php endif; ?>
+        <button class="btn btn-accent flex-fill"><i class="bi bi-search"></i> Filtrar</button>
+        <?php if ($q !== '' || $fs !== ''): ?><a href="/admin/clientes.php" class="btn btn-outline-dsk" title="Limpar filtros"><i class="bi bi-x-lg"></i></a><?php endif; ?>
       </div>
     </div>
   </form>
