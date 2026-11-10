@@ -56,9 +56,9 @@ try {
     $filtroErro = $e->getMessage();
 }
 
-$sqlRotas = 'SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END)
+$sqlRotas = "SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 AND c.categoria = 'Combustível' THEN 2 ELSE 1 END)
                                      FROM custos_rota c WHERE c.rota_id = r.id),0) custo
-               FROM rotas r WHERE r.cliente_id = ?';
+               FROM rotas r WHERE r.cliente_id = ?";
 $paramsRotas = [$cid];
 if ($filtroRotas['de'] !== null && $filtroErro === '') {
     $sqlRotas .= ' AND r.data_rota BETWEEN ? AND ?';
@@ -115,10 +115,11 @@ app_header($u, 'Rotas', 'Cadastre, edite e acompanhe os trajetos e valores', 'ro
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
     <div id="mapaRota" class="mb-3" style="display:none;height:320px;border-radius:12px;border:1px solid var(--border, rgba(255,255,255,.12));overflow:hidden;z-index:0;"></div>
 
-    <label class="return-option mb-3" for="ida_volta">
+    <label class="return-option mb-3<?= $formData['ida_volta'] ? ' is-checked' : '' ?>" for="ida_volta">
       <input type="checkbox" id="ida_volta" name="ida_volta" value="1" <?= $formData['ida_volta'] ? 'checked' : '' ?>>
-      <i class="bi bi-arrow-return-left"></i>
-      <span>Incluir retorno<small>Duplica a distância e o valor a receber.</small></span>
+      <span class="return-option__icon" aria-hidden="true"><i class="bi bi-arrow-left-right"></i></span>
+      <span class="return-option__copy"><strong>IDA E VOLTA</strong></span>
+      <i class="bi bi-check-circle-fill return-option__check" aria-hidden="true"></i>
     </label>
 
     <div class="form-row align-items-end">

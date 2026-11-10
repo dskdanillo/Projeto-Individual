@@ -85,7 +85,7 @@ if ($filtro['de'] !== null) {
 }
 
 $st = $pdo->prepare("SELECT r.id, r.origem, r.destino, r.km, r.ida_volta, r.valor_receber, r.data_rota,
-                            COALESCE(SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END), 0) AS custo
+                            COALESCE(SUM(c.valor * CASE WHEN r.ida_volta = 1 AND c.categoria = 'Combustível' THEN 2 ELSE 1 END), 0) AS custo
                        FROM rotas r
                        LEFT JOIN custos_rota c ON c.rota_id = r.id
                       WHERE $where
@@ -94,7 +94,7 @@ $st = $pdo->prepare("SELECT r.id, r.origem, r.destino, r.km, r.ida_volta, r.valo
 $st->execute($params);
 $rotas = $st->fetchAll();
 
-$st = $pdo->prepare("SELECT c.categoria, SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END) AS total
+$st = $pdo->prepare("SELECT c.categoria, SUM(c.valor * CASE WHEN r.ida_volta = 1 AND c.categoria = 'Combustível' THEN 2 ELSE 1 END) AS total
                        FROM custos_rota c
                        JOIN rotas r ON r.id = c.rota_id
                       WHERE $where

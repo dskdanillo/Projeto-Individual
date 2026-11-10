@@ -24,9 +24,9 @@ $st->execute($paramsPeriodo);
 $tot = $st->fetch();
 
 // custos lançados nas rotas do período
-$st = $pdo->prepare('SELECT COALESCE(SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END),0) FROM custos_rota c
+$st = $pdo->prepare("SELECT COALESCE(SUM(c.valor * CASE WHEN r.ida_volta = 1 AND c.categoria = 'Combustível' THEN 2 ELSE 1 END),0) FROM custos_rota c
                        JOIN rotas r ON r.id = c.rota_id
-                      WHERE r.cliente_id = ?' . $wherePeriodoRotas);
+                      WHERE r.cliente_id = ?" . $wherePeriodoRotas);
 $st->execute($paramsPeriodo);
 $custo = (float)$st->fetchColumn();
 
@@ -36,18 +36,18 @@ $n       = (int)$tot['n'];
 $lucro   = $receita - $custo;
 
 // custos por categoria
-$st = $pdo->prepare('SELECT c.categoria, SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END) total FROM custos_rota c
+$st = $pdo->prepare("SELECT c.categoria, SUM(c.valor * CASE WHEN r.ida_volta = 1 AND c.categoria = 'Combustível' THEN 2 ELSE 1 END) total FROM custos_rota c
                        JOIN rotas r ON r.id = c.rota_id
-                      WHERE r.cliente_id = ?' . $wherePeriodoRotas . '
-                      GROUP BY c.categoria ORDER BY total DESC');
+                      WHERE r.cliente_id = ?" . $wherePeriodoRotas . "
+                      GROUP BY c.categoria ORDER BY total DESC");
 $st->execute($paramsPeriodo);
 $cats = $st->fetchAll();
 
 // últimas rotas do período
-$st = $pdo->prepare('SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 THEN 2 ELSE 1 END)
+$st = $pdo->prepare("SELECT r.*, COALESCE((SELECT SUM(c.valor * CASE WHEN r.ida_volta = 1 AND c.categoria = 'Combustível' THEN 2 ELSE 1 END)
                                                 FROM custos_rota c WHERE c.rota_id = r.id),0) custo
-                       FROM rotas r WHERE r.cliente_id = ?' . $wherePeriodoRotas . '
-                      ORDER BY r.data_rota DESC, r.id DESC LIMIT 8');
+                       FROM rotas r WHERE r.cliente_id = ?" . $wherePeriodoRotas . "
+                      ORDER BY r.data_rota DESC, r.id DESC LIMIT 8");
 $st->execute($paramsPeriodo);
 $rotas = $st->fetchAll();
 

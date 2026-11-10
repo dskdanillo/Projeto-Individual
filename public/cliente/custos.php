@@ -109,8 +109,10 @@ if ($rota) {
             flash('danger', 'Custo não encontrado nesta rota.');
         }
     }
-    $multiplicadorCusto = $rota['ida_volta'] ? 2 : 1;
-    $totalCusto = array_sum(array_column($custos, 'valor')) * $multiplicadorCusto;
+    foreach ($custos as $custo) {
+        $multiplicadorCusto = $custo['categoria'] === 'Combustível' && $rota['ida_volta'] ? 2 : 1;
+        $totalCusto += (float)$custo['valor'] * $multiplicadorCusto;
+    }
     $lucro = $rota['valor_receber'] - $totalCusto;
     $kmTotal = $rota['km'] * ($rota['ida_volta'] ? 2 : 1);
 } else {
@@ -199,7 +201,7 @@ app_header($u, 'Custos da rota', $rota ? 'Lance o que você gastou para realizar
   <div class="section-title"><i class="bi bi-receipt"></i> <?= $rota ? 'Custos desta rota' : 'Todos os custos lançados' ?></div>
   <div class="table-responsive">
     <table class="table-dsk">
-      <thead><tr><th>Data</th><?php if (!$rota): ?><th>Rota</th><?php endif; ?><th>Categoria</th><th>Descrição</th><th><?= $rota && $rota['ida_volta'] ? 'Valor total' : 'Valor' ?></th><th></th></tr></thead>
+      <thead><tr><th>Data</th><?php if (!$rota): ?><th>Rota</th><?php endif; ?><th>Categoria</th><th>Descrição</th><th><?= $rota && $rota['ida_volta'] ? 'Valor contabilizado' : 'Valor' ?></th><th></th></tr></thead>
       <tbody>
       <?php foreach ($custos as $c): ?>
         <tr <?= !$rota ? 'data-href="/cliente/custos.php?rota_id=' . (int)$c['rota_id'] . '"' : '' ?>>
@@ -207,7 +209,7 @@ app_header($u, 'Custos da rota', $rota ? 'Lance o que você gastou para realizar
           <?php if (!$rota): ?><td style="min-width:200px;"><?= h($c['origem']) ?> → <?= h($c['destino']) ?></td><?php endif; ?>
           <td><?= h($c['categoria']) ?></td>
           <td class="text-dim"><?= h($c['descricao']) ?></td>
-          <td class="font-mono"><?= brl($c['valor'] * (($rota['ida_volta'] ?? $c['ida_volta']) ? 2 : 1)) ?></td>
+          <td class="font-mono"><?= brl($c['valor'] * ($c['categoria'] === 'Combustível' && ($rota['ida_volta'] ?? $c['ida_volta']) ? 2 : 1)) ?></td>
           <td class="text-right">
             <a href="/cliente/custos.php?rota_id=<?= (int)$c['rota_id'] ?>&editar=<?= (int)$c['id'] ?>" class="btn btn-sm btn-outline-dsk" title="Editar" aria-label="Editar custo"><i class="bi bi-pencil"></i></a>
             <form method="post" class="d-inline" data-confirm="Remover este custo?">

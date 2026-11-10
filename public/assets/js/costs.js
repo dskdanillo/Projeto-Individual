@@ -19,9 +19,9 @@
     if (eraCombustivel && !combustivel) valor.value = '';
     eraCombustivel = combustivel;
     valor.readOnly = combustivel;
-    valorLabel.textContent = combustivel
-      ? 'Valor calculado por trecho (R$)'
-      : (multiplicador === 2 ? 'Valor por trecho (R$)' : 'Valor (R$)');
+    valorLabel.textContent = combustivel && multiplicador === 2
+      ? 'Combustível por trecho (R$)'
+      : (combustivel ? 'Combustível (R$)' : 'Valor (R$)');
 
     if (!combustivel) {
       info.textContent = '';

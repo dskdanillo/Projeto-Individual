@@ -12,6 +12,7 @@
   var kmInput = document.getElementById('km');
   var valorKmInput = document.getElementById('valor_km');
   var idaVoltaInput = document.getElementById('ida_volta');
+  var returnOption = document.querySelector('.return-option');
   var kmTotal = document.getElementById('kmTotal');
   var valorReceber = document.getElementById('valorReceber');
   var btnCalc = document.getElementById('btnCalcKm');
@@ -37,6 +38,7 @@
 
   function recalculate() {
     var multiplier = idaVoltaInput.checked ? 2 : 1;
+    if (returnOption) returnOption.classList.toggle('is-checked', idaVoltaInput.checked);
     var km = num(kmInput.value);
     kmTotal.textContent = (km * multiplier).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
@@ -126,7 +128,7 @@
     }
     if (routeLayer) map.removeLayer(routeLayer);
     var latlngs = coords.map(function (c) { return [c[1], c[0]]; });
-    var line = L.polyline(latlngs, { color: '#d4af6a', weight: 5, opacity: 0.9 });
+    var line = L.polyline(latlngs, { color: '#8b5cf6', weight: 6, opacity: 0.95 });
     var start = L.circleMarker([pOrigem.lat, pOrigem.lon], { radius: 9, color: '#fff', weight: 2, fillColor: '#3f9b6e', fillOpacity: 1 })
       .bindTooltip('Origem');
     var end = L.circleMarker([pDestino.lat, pDestino.lon], { radius: 9, color: '#fff', weight: 2, fillColor: '#d9534f', fillOpacity: 1 })
