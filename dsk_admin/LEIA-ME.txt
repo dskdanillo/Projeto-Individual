@@ -24,7 +24,7 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
      public/cadastro.php          (alterado: validacao de cadastro)
      public/recuperar-senha.php   (NOVO: solicitar ou concluir recuperação)
      public/admin/dashboard.php   (substitui o anterior)
-     public/admin/recuperacoes-senha.php (NOVO: atender solicitações via WhatsApp)
+     public/admin/recuperacoes-senha.php (NOVO: atender solicitações de recuperação)
      public/admin/relatorio-clientes.php (NOVO)
      public/admin/clientes.php    (NOVO)
      public/admin/financeiro.php  (NOVO)
@@ -35,8 +35,8 @@ DSK - AREA ADMINISTRATIVA (clientes e financeiro)
 
    A recuperação de senha não usa e-mail/SMTP. O motorista solicita ajuda
    pela tela de login; o administrador recebe o alerta no Dashboard e, em
-   Recuperação de senhas, gera uma senha temporária e abre o WhatsApp cadastrado
-   com a mensagem pronta para enviar. Depois de entrar, o motorista altera a
+   Recuperação de senhas, gera uma senha temporária, exibida uma única vez para
+   ser compartilhada por um canal seguro. Depois de entrar, o motorista altera a
    senha em Dados pessoais. A tabela de solicitações é criada automaticamente
    e também consta em db/init.sql para novas instalações.
 

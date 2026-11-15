@@ -136,7 +136,7 @@ Se os dados de conexão forem diferentes, defina `DB_HOST`, `DB_NAME`, `DB_USER`
 
 ### Recuperar senha pelo administrador
 
-Na tela de login, o motorista informa o e-mail cadastrado. O sistema mostra uma confirmação genérica e, se a conta estiver ativa, cria um alerta no Dashboard do administrador. Em **Recuperação de senhas**, o administrador confere o telefone/WhatsApp cadastrado, gera uma senha temporária aleatória e abre uma conversa do WhatsApp com a mensagem pronta para envio. O administrador ainda precisa confirmar o envio no WhatsApp.
+Na tela de login, o motorista informa o e-mail cadastrado. O sistema mostra uma confirmação genérica e, se a conta estiver ativa, cria um alerta no Dashboard do administrador. Em **Recuperação de senhas**, o administrador gera uma senha temporária aleatória, que é exibida uma única vez. Copie-a e informe ao motorista por um canal seguro.
 
 Depois de entrar com a senha temporária, o motorista deve abrir **Dados pessoais → Alterar senha** e escolher uma senha própria. A nova senha só é salva como hash. As solicitações são limitadas por e-mail e IP, e os dados de e-mail/IP armazenados para esse controle são hashes. A tabela de solicitações é criada automaticamente em bancos existentes e também consta em `db/init.sql` para instalações novas.
 
@@ -155,7 +155,7 @@ Este é o único e-mail autorizado a usar o perfil de administrador. A senha fic
 O menu do administrador tem **Dashboard**, **Clientes**, **Recuperação de senhas** e **Financeiro**.
 
 - **Clientes:** selecione um cadastro para editar dados pessoais e de acesso, redefinir a senha e controlar o status da conta. Cidade é salva no formato `CIDADE / UF`; e-mail e telefone não podem se repetir.
-- **Recuperação de senhas:** confira as solicitações de motoristas, gere uma senha temporária e abra o WhatsApp cadastrado para enviá-la.
+- **Recuperação de senhas:** confira as solicitações de motoristas e gere uma senha temporária, exibida uma única vez para ser compartilhada por um canal seguro.
 - **Financeiro:** controla somente a **mensalidade** que o cliente paga para usar a plataforma. Novos cadastros recebem o vencimento no dia em que foram criados e a primeira cobrança é lançada na hora. As próximas mensalidades são geradas automaticamente conforme o dia individual de vencimento; o administrador também pode gerar para todos ou somente para um cliente. A cobrança aparece no financeiro e no painel do cliente. O administrador registra a baixa quando confirma o recebimento. Pix é uma forma de pagamento registrada, não uma chave armazenada.
 - O sistema **não processa pagamentos** nem recebe valores de rotas.
 

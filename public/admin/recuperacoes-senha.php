@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $recovery = password_reset_generate($pdo, $requestId, (int)$u['id']);
-        $message = "Olá, {$recovery['name']}! Conforme solicitado, sua senha temporária de acesso ao DSK é: {$recovery['password']}. Entre com seu e-mail cadastrado e use essa senha. Depois, altere-a na aba Dados pessoais. Se você não solicitou a recuperação, avise o administrador.";
-        redirect('https://wa.me/' . $recovery['phone'] . '?text=' . rawurlencode($message));
+        flash('success', "Senha temporária gerada para {$recovery['name']}: {$recovery['password']}. Copie-a e informe ao motorista por um canal seguro. Ela não poderá ser exibida novamente.");
+        redirect('/admin/recuperacoes-senha.php');
     } catch (RuntimeException $error) {
         flash('danger', $error->getMessage());
         redirect('/admin/recuperacoes-senha.php');
@@ -25,10 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $requests = $pdo->query(
-    "SELECT r.id, r.requested_at, u.nome, u.email, c.telefone
+    "SELECT r.id, r.requested_at, u.nome, u.email
        FROM password_reset_requests r
        JOIN usuarios u ON u.id = r.user_id AND u.perfil = 'cliente'
-       LEFT JOIN clientes c ON c.usuario_id = u.id
       WHERE r.status = 'pending'
       ORDER BY r.requested_at ASC, r.id ASC
       LIMIT 100"
@@ -38,24 +37,23 @@ app_header($u, 'Recuperação de senhas', 'Solicitações dos motoristas para re
 ?>
 <div class="dsk-card">
   <div class="section-title"><i class="bi bi-bell-fill"></i> Solicitações pendentes</div>
-  <p class="text-dim">Ao atender uma solicitação, uma senha temporária aleatória será criada e o WhatsApp do motorista abrirá com a mensagem pronta para envio.</p>
+  <p class="text-dim">Ao atender uma solicitação, uma senha temporária será criada. Copie-a e informe ao motorista por um canal seguro; ela não poderá ser exibida novamente.</p>
   <?php if ($requests): ?>
     <div class="table-responsive">
       <table class="table-dsk compact">
-        <thead><tr><th>Motorista</th><th>E-mail</th><th>WhatsApp</th><th>Solicitada em</th><th>Ação</th></tr></thead>
+        <thead><tr><th>Motorista</th><th>E-mail</th><th>Solicitada em</th><th>Ação</th></tr></thead>
         <tbody>
         <?php foreach ($requests as $request): ?>
           <tr>
             <td><?= h($request['nome']) ?></td>
             <td><?= h($request['email']) ?></td>
-            <td><?= h($request['telefone'] ?? 'Não informado') ?></td>
             <td class="font-mono"><?= h(date('d/m/Y H:i', strtotime($request['requested_at']))) ?></td>
             <td>
-              <form method="post" onsubmit="return confirm('Gerar uma nova senha para este motorista e abrir o WhatsApp?');">
+              <form method="post" onsubmit="return confirm('Gerar uma senha temporária para este motorista?');">
                 <?= csrf_field() ?>
                 <input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>">
                 <button type="submit" class="btn btn-sm btn-success">
-                  <i class="bi bi-whatsapp"></i> Gerar senha e abrir WhatsApp
+                  <i class="bi bi-key"></i> Gerar senha temporária
                 </button>
               </form>
             </td>

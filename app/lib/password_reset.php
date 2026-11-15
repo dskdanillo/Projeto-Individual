@@ -83,17 +83,16 @@ function password_reset_request(PDO $pdo, string $email, ?string $ip): void
 }
 
 /**
- * @return array{name:string, phone:string, password:string}
+ * @return array{name:string, password:string}
  */
 function password_reset_generate(PDO $pdo, int $requestId, int $adminId): array
 {
     $pdo->beginTransaction();
     try {
         $lookup = $pdo->prepare(
-            "SELECT r.id, u.id AS user_id, u.nome, c.telefone
+            "SELECT r.id, u.id AS user_id, u.nome
                FROM password_reset_requests r
                JOIN usuarios u ON u.id = r.user_id AND u.perfil = 'cliente'
-               LEFT JOIN clientes c ON c.usuario_id = u.id
               WHERE r.id = ? AND r.status = 'pending'
               FOR UPDATE"
         );
@@ -101,14 +100,6 @@ function password_reset_generate(PDO $pdo, int $requestId, int $adminId): array
         $request = $lookup->fetch();
         if (!$request) {
             throw new RuntimeException('Esta solicitação já foi atendida ou não está mais disponível.');
-        }
-
-        $phone = normalizar_telefone((string)$request['telefone']);
-        if (strlen($phone) === 10 || strlen($phone) === 11) {
-            $phone = '55' . $phone;
-        }
-        if (!preg_match('/^55\d{10,11}$/', $phone)) {
-            throw new RuntimeException('O telefone/WhatsApp do motorista não está válido. Atualize o cadastro antes de gerar a senha.');
         }
 
         $password = bin2hex(random_bytes(12));
@@ -131,7 +122,6 @@ function password_reset_generate(PDO $pdo, int $requestId, int $adminId): array
         $pdo->commit();
         return [
             'name' => (string)$request['nome'],
-            'phone' => $phone,
             'password' => $password,
         ];
     } catch (Throwable $error) {

@@ -151,7 +151,7 @@ app_header($u, 'Dados pessoais', 'Atualize suas informações de cadastro', 'dad
         <input type="email" class="form-control" id="email" name="email" maxlength="150" value="<?= h($form['email']) ?>" required>
       </div>
       <div class="form-group col-md-6">
-        <label class="form-label" for="telefone">Telefone / WhatsApp</label>
+        <label class="form-label" for="telefone">Telefone</label>
         <input type="tel" class="form-control" id="telefone" name="telefone" value="<?= h($form['telefone']) ?>" required>
       </div>
       <div class="form-group col-md-6">
@@ -196,7 +196,7 @@ app_header($u, 'Dados pessoais', 'Atualize suas informações de cadastro', 'dad
 </div>
 <div class="dsk-card mt-3">
   <div class="section-title"><i class="bi bi-shield-lock"></i> Alterar senha</div>
-  <p class="text-dim">Depois de entrar com a senha temporária enviada pelo administrador, troque-a por uma senha pessoal.</p>
+  <p class="text-dim">Depois de receber a senha temporária do administrador, troque-a por uma senha pessoal.</p>
   <form method="post" autocomplete="off">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="change_password">

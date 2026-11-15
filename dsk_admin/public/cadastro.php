@@ -98,7 +98,7 @@ echo theme_switch();
           <input type="email" name="email" class="form-control" value="<?= h($v['email']) ?>" required>
         </div>
         <div class="form-group col-md-6">
-          <label class="form-label">Telefone / WhatsApp</label>
+          <label class="form-label">Telefone</label>
           <input type="tel" name="telefone" class="form-control" placeholder="(47) 90000-0000" value="<?= h($v['telefone']) ?>" required>
         </div>
       </div>

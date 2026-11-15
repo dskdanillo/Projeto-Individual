@@ -31,7 +31,7 @@ echo theme_switch();
 
     <?= flash_render() ?>
     <h1 class="page-title mb-2">Esqueceu sua senha?</h1>
-    <p class="text-dim mb-3" style="font-size:13px;">Informe o e-mail cadastrado. Se a conta estiver ativa, o administrador receberá um alerta e poderá enviar uma senha temporária pelo WhatsApp cadastrado.</p>
+    <p class="text-dim mb-3" style="font-size:13px;">Informe o e-mail cadastrado. Se a conta estiver ativa, o administrador receberá um alerta para ajudar na recuperação da senha.</p>
     <form method="post" autocomplete="off">
       <?= csrf_field() ?>
       <div class="input-wrap">
