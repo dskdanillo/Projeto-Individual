@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $erros[] = 'Já existe um cadastro com este e-mail ou telefone.';
                 }
                 if (!$erros) {
-                    flash('success', 'Cadastro realizado! A primeira mensalidade já está disponível; entre com seu e-mail e senha.');
+                    flash('success', 'Cadastro concluído! A primeira cobrança de mensalidade já está disponível no painel. Entre com seu e-mail e senha para consultá-la.');
                     redirect('/index.php');
                 }
             }

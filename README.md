@@ -19,7 +19,7 @@
 
 ## 📌 Sobre o projeto
 
-O **DSK - Gestão de Custo** ajuda o motorista parceiro a saber, rota por rota, **quanto vai receber, quanto gastou e quanto sobrou**. O cliente cadastra o trajeto, a distância é calculada automaticamente pelo mapa, os custos são lançados por trecho e o sistema mostra o lucro real. O administrador acompanha os clientes e controla a mensalidade da plataforma.
+O **DSK - Gestão de Custo** ajuda motoristas parceiros a saber, rota por rota, **quanto vão receber, quanto gastaram e quanto sobrou**. O motorista registra cada trajeto, a distância é calculada automaticamente pelo mapa, os custos são lançados para a rota e o sistema mostra o resultado. O administrador acompanha os clientes e controla as mensalidades da plataforma.
 
 ## 📑 Sumário
 
@@ -45,8 +45,8 @@ O **DSK - Gestão de Custo** ajuda o motorista parceiro a saber, rota por rota, 
 | 🗂️ **Histórico de rotas** | Filtre as rotas por dia, mês, ano ou intervalo personalizado. |
 | 👤 **Dados pessoais** | O cliente mantém seu próprio cadastro atualizado. |
 | 🛡️ **Painel administrativo** | Gestão de clientes (dados, senha e status da conta) e financeiro das mensalidades. |
-| 🔐 **Recuperação de senha** | Envio de link temporário e de uso único para o e-mail cadastrado. |
-| 🌗 **Tema claro e escuro** | Alternância de tema, lembrada pelo navegador. |
+| 🔐 **Recuperação de senha** | O administrador gera uma senha temporária, exibida uma única vez para compartilhamento por um canal seguro. |
+| 🌗 **Tema claro e escuro** | A preferência de tema fica salva no navegador. |
 
 Em **Dados pessoais**, informe o consumo médio do veículo em km/L e o preço atual do combustível por litro. Ao selecionar **Combustível** nos custos da rota, o sistema calcula o gasto estimado com base nos quilômetros da rota; os outros tipos de custo continuam sendo preenchidos manualmente.
 
@@ -142,13 +142,7 @@ Depois de entrar com a senha temporária, o motorista deve abrir **Dados pessoai
 
 ## 🔑 Acesso inicial
 
-| Perfil | E-mail | Senha |
-| --- | --- | --- |
-| Administrador | `eu sei dsk.danillo` | `1~~@~~1` |
-
-Este é o único e-mail autorizado a usar o perfil de administrador. A senha fica armazenada no banco como hash, e o usuário MySQL `dsk` é separado do login da aplicação. Clientes se cadastram pela própria aplicação.
-
-> 🔒 Credenciais acima são apenas para uso local e demonstração. **Altere-as antes de publicar o sistema em um servidor real.**
+A conta de administrador é criada durante a instalação com uma senha de demonstração. Substitua-a por uma senha segura antes de publicar o sistema. As senhas são armazenadas no banco como hash; o usuário MySQL `dsk` é separado do login da aplicação. Clientes podem se cadastrar pela própria aplicação.
 
 ## 🛠️ Administração
 
@@ -193,7 +187,7 @@ dsk/
     └── logout.php
 ```
 
-**Tabelas do banco:** `usuarios`, `clientes`, `rotas`, `custos_rota` e `mensalidades`.
+**Tabelas do banco:** `usuarios`, `clientes`, `rotas`, `custos_rota`, `mensalidades` e `password_reset_requests`.
 
 ## 🛡️ Segurança
 

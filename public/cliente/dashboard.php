@@ -96,7 +96,7 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
     <div class="dsk-card kpi-card">
       <div class="kpi-icon" style="color:var(--info);background:rgba(111,179,232,.14);"><i class="bi bi-signpost-split-fill"></i></div>
       <p class="kpi-value"><?= number_format($km, 1, ',', '.') ?> km</p>
-      <div class="kpi-label"><?= $n ?> rota(s) no período</div>
+      <div class="kpi-label"><?= $n ?> <?= $n === 1 ? 'rota' : 'rotas' ?> no período</div>
     </div>
   </div>
 </div>

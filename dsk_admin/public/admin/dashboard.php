@@ -32,7 +32,7 @@ app_header($u, 'Painel administrativo', 'Visão geral dos clientes da plataforma
   <?php foreach ([
       ['',             'bi-people-fill',                'Clientes cadastrados',     $total,    ''],
       ['ativo',        'bi-person-check-fill',          'Contas ativas',            $ativos,   'color:var(--success);background:rgba(95,214,153,.14);'],
-      ['inadimplente', 'bi-exclamation-triangle-fill',  'Inadimplentes (offline)',  $inadimp,  'color:var(--warning);background:rgba(232,184,95,.16);'],
+      ['inadimplente', 'bi-exclamation-triangle-fill',  'Inadimplentes (sem acesso)',  $inadimp,  'color:var(--warning);background:rgba(232,184,95,.16);'],
       ['inativo',      'bi-person-x-fill',              'Contas inativas',          $inativos, 'color:var(--danger);background:rgba(239,117,117,.14);'],
   ] as [$filtro, $ic, $lb, $vl, $estilo]): ?>
   <div class="col-6 col-lg-3 mb-3">
@@ -49,7 +49,7 @@ app_header($u, 'Painel administrativo', 'Visão geral dos clientes da plataforma
 
 <?php if ($recuperacoes > 0): ?>
 <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between" style="gap:12px;border-radius:12px;">
-  <span><i class="bi bi-bell-fill mr-2"></i><strong><?= $recuperacoes ?></strong> solicitação(ões) de recuperação de senha aguardando atendimento.</span>
+  <span><i class="bi bi-bell-fill mr-2"></i><strong><?= $recuperacoes ?></strong> <?= $recuperacoes === 1 ? 'solicitação de recuperação de senha pendente.' : 'solicitações de recuperação de senha pendentes.' ?></span>
   <a class="btn btn-sm btn-warning" href="/admin/recuperacoes-senha.php">Ver solicitações</a>
 </div>
 <?php endif; ?>

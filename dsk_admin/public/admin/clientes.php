@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $st->execute([$novo, ($novo === 'ativo' || $motivo === '') ? null : $motivo, date('Y-m-d H:i:s'), $id]);
             flash('success', [
                 'ativo'        => 'Conta reativada: o cliente já pode entrar no sistema.',
-                'inadimplente' => 'Conta mantida offline por inadimplência até o acerto.',
+                'inadimplente' => 'Conta mantida sem acesso por inadimplência até a regularização dos pagamentos.',
                 'inativo'      => 'Conta desativada: o cliente não consegue mais entrar.',
             ][$novo]);
         }
@@ -219,7 +219,7 @@ $campos_cliente = function (bool $novo) use ($f): void { ?>
               <button type="button" class="btn btn-outline-dsk" id="btnGerarSenha" title="Gerar senha aleatória"><i class="bi bi-shuffle"></i> Gerar</button>
             </div>
           </div>
-          <div class="hint"><?= $novo ? 'Anote a senha para entregar ao cliente.' : 'A senha atual não pode ser consultada (fica criptografada). Para redefinir, digite ou gere uma nova e informe ao cliente.' ?></div>
+          <div class="hint"><?= $novo ? 'Anote a senha e informe-a ao cliente por um canal seguro.' : 'A senha atual não pode ser consultada, pois é armazenada em formato irreversível. Para redefini-la, digite ou gere uma nova senha e informe-a ao cliente por um canal seguro.' ?></div>
         </div>
       </div>
 <?php };
@@ -270,7 +270,7 @@ if ($cli):
         <?php if ($cli['status'] !== 'ativo' && $cli['status_motivo']): ?><div class="mt-2"><strong>Motivo:</strong> <?= h($cli['status_motivo']) ?></div><?php endif; ?>
         <?php if ($cli['status_alterado_em']): ?><div class="mt-1">Alterada em <?= h(date('d/m/Y H:i', strtotime($cli['status_alterado_em']))) ?></div><?php endif; ?>
       </div>
-      <p class="text-dim" style="font-size:12.5px;">Conta <strong>inadimplente</strong> ou <strong>inativa</strong> fica offline: o cliente não consegue entrar (e quem estiver logado é desconectado) até você reativar.</p>
+      <p class="text-dim" style="font-size:12.5px;">Contas <strong>inadimplentes</strong> ou <strong>inativas</strong> ficam sem acesso: o cliente não consegue entrar e, se já estiver conectado, será desconectado até você reativar a conta.</p>
       <form method="post">
         <?= csrf_field() ?>
         <input type="hidden" name="acao" value="status">
@@ -282,7 +282,7 @@ if ($cli):
           <button name="novo_status" value="ativo" class="btn btn-accent btn-block mb-2" style="height:44px;"><i class="bi bi-unlock-fill"></i> Reativar conta</button>
         <?php endif; ?>
         <?php if ($cli['status'] !== 'inadimplente'): ?>
-          <button name="novo_status" value="inadimplente" class="btn btn-warning-dsk btn-block mb-2" style="height:44px;"><i class="bi bi-lock-fill"></i> Manter offline (inadimplente)</button>
+          <button name="novo_status" value="inadimplente" class="btn btn-warning-dsk btn-block mb-2" style="height:44px;"><i class="bi bi-lock-fill"></i> Suspender acesso (inadimplente)</button>
         <?php endif; ?>
         <?php if ($cli['status'] !== 'inativo'): ?>
           <button name="novo_status" value="inativo" class="btn btn-outline-dsk btn-block" style="height:44px;"><i class="bi bi-person-dash-fill"></i> Desativar conta</button>
@@ -381,7 +381,7 @@ app_header($u, 'Clientes', 'Controle de acesso e cadastro de todos os clientes',
 </div>
 
 <div class="dsk-card">
-  <div class="section-title"><i class="bi bi-people-fill"></i> <?= count($lista) ?> cliente(s)</div>
+  <div class="section-title"><i class="bi bi-people-fill"></i> <?= count($lista) ?> <?= count($lista) === 1 ? 'cliente' : 'clientes' ?></div>
   <p class="text-dim" style="font-size:12.5px;">Clique no nome do cliente para editar as informações, redefinir login/senha ou controlar o acesso.</p>
   <div class="table-responsive">
     <table class="table-dsk">

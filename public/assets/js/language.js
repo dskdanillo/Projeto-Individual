@@ -2,8 +2,8 @@
   var KEY = 'dsk_language';
   var translations = [
     ['Idioma', 'Language', 'Idioma'],
-    ['Tema noite', 'Dark theme', 'Tema oscuro'],
-    ['Tema dia', 'Light theme', 'Tema claro'],
+    ['Tema escuro', 'Dark theme', 'Tema oscuro'],
+    ['Tema claro', 'Light theme', 'Tema claro'],
     ['DSK - Gestão de Custo', 'DSK - Cost Management', 'DSK - Gestión de Costos'],
     ['Gestão de Custo', 'Cost Management', 'Gestión de Costos'],
     ['Controle de rotas, custos e lucro', 'Track routes, costs, and profit', 'Control de rutas, gastos y ganancias'],
@@ -28,7 +28,8 @@
     ['Ação', 'Action', 'Acción'],
     ['Gerar senha temporária', 'Generate temporary password', 'Generar contraseña temporal'],
     ['Nenhuma solicitação de recuperação pendente.', 'No pending recovery requests.', 'No hay solicitudes de recuperación pendientes.'],
-    ['Solicitação(ões) de recuperação de senha aguardando atendimento.', 'Password recovery request(s) waiting for review.', 'Solicitud(es) de recuperación de contraseña pendiente(s) de atención.'],
+    ['solicitação de recuperação de senha pendente.', 'password recovery request pending.', 'solicitud de recuperación de contraseña pendiente.'],
+    ['solicitações de recuperação de senha pendentes.', 'password recovery requests pending.', 'solicitudes de recuperación de contraseña pendientes.'],
     ['Ver solicitações', 'View requests', 'Ver solicitudes'],
     ['Solicitação inválida.', 'Invalid request.', 'Solicitud no válida.'],
     ['Esta solicitação já foi atendida ou não está mais disponível.', 'This request has already been handled or is no longer available.', 'Esta solicitud ya fue atendida o ya no está disponible.'],
@@ -68,7 +69,7 @@
     ['Baixar relatório PDF', 'Download PDF report', 'Descargar informe PDF'],
     ['Clientes cadastrados', 'Registered clients', 'Clientes registrados'],
     ['Contas ativas', 'Active accounts', 'Cuentas activas'],
-    ['Inadimplentes (offline)', 'Overdue (offline)', 'Morosos (sin acceso)'],
+    ['Inadimplentes (sem acesso)', 'Overdue (access suspended)', 'Morosos (sin acceso)'],
     ['Contas inativas', 'Inactive accounts', 'Cuentas inactivas'],
     ['Novos clientes em', 'New clients in', 'Nuevos clientes en'],
     ['Rotas cadastradas na plataforma', 'Routes registered on the platform', 'Rutas registradas en la plataforma'],
@@ -103,8 +104,8 @@
     ['Deixe em branco para manter a atual', 'Leave blank to keep the current password', 'Déjalo en blanco para mantener la actual'],
     ['Gerar senha aleatória', 'Generate random password', 'Generar contraseña aleatoria'],
     ['Gerar', 'Generate', 'Generar'],
-    ['Anote a senha para entregar ao cliente.', 'Write down the password to give to the client.', 'Anota la contraseña para entregársela al cliente.'],
-    ['A senha atual não pode ser consultada (fica criptografada). Para redefinir, digite ou gere uma nova e informe ao cliente.', 'The current password cannot be viewed because it is encrypted. To reset it, enter or generate a new one and share it with the client.', 'La contraseña actual no se puede consultar porque está cifrada. Para restablecerla, escribe o genera una nueva e infórmasela al cliente.'],
+    ['Anote a senha e informe-a ao cliente por um canal seguro.', 'Write down the password and share it with the client through a secure channel.', 'Anota la contraseña y compártela con el cliente por un canal seguro.'],
+    ['A senha atual não pode ser consultada, pois é armazenada em formato irreversível. Para redefini-la, digite ou gere uma nova senha e informe-a ao cliente por um canal seguro.', 'The current password cannot be viewed because it is stored in a one-way format. To reset it, enter or generate a new password and share it with the client through a secure channel.', 'La contraseña actual no se puede consultar porque se almacena en un formato irreversible. Para restablecerla, escribe o genera una nueva contraseña y compártela con el cliente por un canal seguro.'],
     ['Informações do cliente', 'Client information', 'Información del cliente'],
     ['Salvar alterações', 'Save changes', 'Guardar cambios'],
     ['Situação da conta', 'Account status', 'Estado de la cuenta'],
@@ -113,7 +114,7 @@
     ['Alterada em', 'Changed on', 'Cambiada el'],
     ['Motivo / observação', 'Reason / note', 'Motivo / observación'],
     ['Reativar conta', 'Reactivate account', 'Reactivar cuenta'],
-    ['Manter offline (inadimplente)', 'Keep offline (overdue)', 'Mantener sin acceso (moroso)'],
+    ['Suspender acesso (inadimplente)', 'Suspend access (overdue)', 'Suspender acceso (moroso)'],
     ['Desativar conta', 'Deactivate account', 'Desactivar cuenta'],
     ['Excluir conta', 'Delete account', 'Eliminar cuenta'],
     ['Excluir conta do cliente', 'Delete client account', 'Eliminar cuenta del cliente'],
@@ -156,10 +157,10 @@
     ['Excluir cobrança', 'Delete charge', 'Eliminar cobro'],
     ['Nenhuma cobrança encontrada.', 'No charges found.', 'No se encontraron cobros.'],
     ['Gere as mensalidades para elas aparecerem nesta lista e no painel do cliente.', 'Generate subscriptions for them to appear here and on the client dashboard.', 'Genera las cuotas para que aparezcan en esta lista y en el panel del cliente.'],
-    ['Contas offline por inadimplência', 'Accounts offline due to overdue payments', 'Cuentas sin acceso por morosidad'],
+    ['Contas sem acesso por inadimplência', 'Accounts with access suspended due to overdue payments', 'Cuentas sin acceso por morosidad'],
     ['Em aberto', 'Outstanding', 'Pendiente'],
     ['Motivo', 'Reason', 'Motivo'],
-    ['Nenhuma conta offline.', 'No offline accounts.', 'No hay cuentas sin acceso.'],
+    ['Nenhuma conta sem acesso.', 'No accounts with suspended access.', 'No hay cuentas sin acceso.'],
     ['Últimos 6 meses', 'Last 6 months', 'Últimos 6 meses'],
     ['Gerar', 'Generate', 'Generar'],
     ['Selecione um cliente para gerar somente a mensalidade dele.', 'Select a client to generate only their subscription.', 'Selecciona un cliente para generar únicamente su cuota.'],
@@ -173,14 +174,12 @@
     ['Receita das rotas', 'Route revenue', 'Ingresos de rutas'],
     ['Custos das rotas', 'Route expenses', 'Gastos de rutas'],
     ['Lucro líquido', 'Net profit', 'Ganancia neta'],
-    ['rota(s) no período', 'route(s) in period', 'ruta(s) en el período'],
     ['Mensalidades da plataforma', 'Platform subscriptions', 'Cuotas de la plataforma'],
     ['Situação', 'Status', 'Estado'],
     ['Paga', 'Paid', 'Pagada'],
     ['Em atraso', 'Overdue', 'Vencida'],
     ['Nenhuma mensalidade registrada até o momento.', 'No subscriptions have been recorded yet.', 'Todavía no hay cuotas registradas.'],
     ['Gerar relatório', 'Generate report', 'Generar informe'],
-    ['Baixe um PDF organizado com o resumo das rotas, faturamento, gastos por categoria e lucro no período escolhido.', 'Download a clear PDF summary of routes, revenue, expenses by category, and profit for the selected period.', 'Descarga un PDF organizado con el resumen de rutas, ingresos, gastos por categoría y ganancias del período seleccionado.'],
     ['Período', 'Period', 'Período'],
     ['Dia específico', 'Specific day', 'Día específico'],
     ['Mês', 'Month', 'Mes'],
@@ -216,6 +215,7 @@
     ['Editar rota', 'Edit route', 'Editar ruta'],
     ['De (origem)', 'From (origin)', 'Desde (origen)'],
     ['Para (destino)', 'To (destination)', 'Hasta (destino)'],
+    ['Rua, número, cidade/UF', 'Street, number, city/state', 'Calle, número, ciudad/estado'],
     ['Calcular distância', 'Calculate distance', 'Calcular distancia'],
     ['Preencha origem e destino para calcular a distância automaticamente (OpenStreetMap).', 'Enter an origin and destination to calculate the distance automatically (OpenStreetMap).', 'Introduce el origen y el destino para calcular la distancia automáticamente (OpenStreetMap).'],
     ['Incluir retorno', 'Include return trip', 'Incluir regreso'],
@@ -227,7 +227,7 @@
     ['Atualizar rota', 'Update route', 'Actualizar ruta'],
     ['Salvar rota', 'Save route', 'Guardar ruta'],
     ['Minhas rotas', 'My routes', 'Mis rutas'],
-    ['Toque numa rota para lançar ou ver os custos dela.', 'Select a route to add or view its expenses.', 'Selecciona una ruta para agregar o consultar sus gastos.'],
+    ['Selecione uma rota para consultar ou lançar os custos.', 'Select a route to view or record its expenses.', 'Selecciona una ruta para consultar o registrar sus gastos.'],
     ['Filtrar histórico por', 'Filter history by', 'Filtrar historial por'],
     ['R$/km', 'BRL/km', 'BRL/km'],
     ['Receber', 'Receive', 'Recibir'],
@@ -267,7 +267,7 @@
     ['Dinheiro', 'Cash', 'Efectivo'],
     ['A conta foi reativada: o cliente já pode entrar no sistema.', 'Account reactivated: the client can now sign in.', 'Cuenta reactivada: el cliente ya puede iniciar sesión.'],
     ['Conta reativada: o cliente já pode entrar no sistema.', 'Account reactivated: the client can now sign in.', 'Cuenta reactivada: el cliente ya puede iniciar sesión.'],
-    ['Conta mantida offline por inadimplência até o acerto.', 'Account remains offline due to overdue payments until settled.', 'La cuenta permanece sin acceso por pagos pendientes hasta regularizarse.'],
+    ['Conta mantida sem acesso por inadimplência até a regularização dos pagamentos.', 'Account access remains suspended until overdue payments are settled.', 'El acceso a la cuenta permanece suspendido hasta regularizar los pagos vencidos.'],
     ['Conta desativada: o cliente não consegue mais entrar.', 'Account deactivated: the client can no longer sign in.', 'Cuenta desactivada: el cliente ya no puede iniciar sesión.'],
     ['Dados do cliente salvos.', 'Client details saved.', 'Datos del cliente guardados.'],
     ['Dados salvos e senha redefinida.', 'Details saved and password reset.', 'Datos guardados y contraseña restablecida.'],
@@ -285,7 +285,7 @@
     ['Informe o nome.', 'Enter a name.', 'Introduce un nombre.'],
     ['E-mail inválido.', 'Invalid email address.', 'Correo electrónico no válido.'],
     ['As senhas não conferem.', 'Passwords do not match.', 'Las contraseñas no coinciden.'],
-    ['Cadastro realizado! A primeira mensalidade já está disponível; entre com seu e-mail e senha.', 'Registration complete! Your first subscription is available; sign in with your email and password.', '¡Registro completado! Tu primera cuota está disponible; inicia sesión con tu correo electrónico y contraseña.'],
+    ['Cadastro concluído! A primeira cobrança de mensalidade já está disponível no painel. Entre com seu e-mail e senha para consultá-la.', 'Registration complete! Your first monthly charge is available in the dashboard. Sign in with your email and password to view it.', '¡Registro completado! Tu primer cobro mensual está disponible en el panel. Inicia sesión con tu correo electrónico y contraseña para consultarlo.'],
     ['Não foi possível converter o texto do relatório para PDF.', 'Could not convert the report text to PDF.', 'No se pudo convertir el texto del informe a PDF.'],
     ['Nenhuma rota cadastrada neste período.', 'No routes registered for this period.', 'No hay rutas registradas en este período.'],
     ['Painel administrativo', 'Admin dashboard', 'Panel de administración'],
@@ -349,7 +349,7 @@
     ['Excluir esta cobrança?', 'Delete this charge?', '¿Eliminar este cobro?'],
     ['Excluir esta rota e os custos dela?', 'Delete this route and its expenses?', '¿Eliminar esta ruta y sus gastos?'],
     ['Remover este custo?', 'Remove this expense?', '¿Eliminar este gasto?'],
-    ['Conta inadimplente ou inativa fica offline: o cliente não consegue entrar (e quem estiver logado é desconectado) até você reativar.', 'Overdue or inactive accounts are disabled: the client cannot sign in until you reactivate the account.', 'Las cuentas morosas o inactivas se deshabilitan: el cliente no puede iniciar sesión hasta que reactives la cuenta.'],
+    ['Contas inadimplentes ou inativas ficam sem acesso: o cliente não consegue entrar e, se já estiver conectado, será desconectado até você reativar a conta.', 'Overdue or inactive accounts cannot access the system: clients cannot sign in and are signed out if already logged in until you reactivate the account.', 'Las cuentas morosas o inactivas no pueden acceder al sistema: el cliente no puede iniciar sesión y se desconectará si ya estaba conectado, hasta que reactives la cuenta.'],
     ['Remove o cliente e todas as rotas, custos e mensalidades dele. Não dá para desfazer.', 'This deletes the client and all of their routes, expenses, and subscriptions. This cannot be undone.', 'Esto elimina al cliente y todas sus rutas, gastos y cuotas. No se puede deshacer.'],
     ['Excluir DEFINITIVAMENTE a conta de', 'PERMANENTLY delete the account for', 'Eliminar PERMANENTEMENTE la cuenta de'],
     ['A conta atual não pode ser consultada.', 'The current account cannot be viewed.', 'No se puede consultar la cuenta actual.'],
@@ -460,7 +460,7 @@
     ['de ida', 'one-way', 'de ida'],
     ['Valor total', 'Total amount', 'Importe total'],
     ['Não foi possível calcular agora. Verifique a conexão ou digite os km manualmente.', 'Could not calculate right now. Check your connection or enter the distance manually.', 'No se pudo calcular ahora. Comprueba la conexión o introduce la distancia manualmente.'],
-    ['Contas offline por inadimplência', 'Accounts offline due to overdue payments', 'Cuentas sin acceso por morosidad'],
+    ['Contas sem acesso por inadimplência', 'Accounts with access suspended due to overdue payments', 'Cuentas sin acceso por morosidad'],
     ['Em aberto', 'Outstanding', 'Pendiente'],
     ['Dar baixa', 'Record payment', 'Registrar pago'],
     ['Últimos 6 meses', 'Last 6 months', 'Últimos 6 meses'],
@@ -472,7 +472,7 @@
     ['Gere a mensalidade do mês e compartilhe os dados de pagamento com o cliente pelo canal habitual. Depois, registre aqui quando o pagamento for confirmado.', 'Create the monthly charge and share the payment details with the client through your usual channel. Then record the payment here once it is confirmed.', 'Genera el cobro mensual y comparte los datos de pago con el cliente por el canal habitual. Después, registra aquí el pago cuando se confirme.'],
     ['Gere as mensalidades para elas aparecerem nesta lista e no painel do cliente.', 'Generate subscriptions to show them here and on the client dashboard.', 'Genera las cuotas para que aparezcan aquí y en el panel del cliente.'],
     ['Todos os clientes elegíveis', 'All eligible clients', 'Todos los clientes elegibles'],
-    ['Nenhuma conta offline.', 'No accounts are offline.', 'No hay cuentas sin acceso.'],
+    ['Nenhuma conta sem acesso.', 'No accounts with suspended access.', 'No hay cuentas sin acceso.'],
     ['Informações do cliente', 'Client information', 'Información del cliente'],
     ['Dados do cliente', 'Client details', 'Datos del cliente'],
     ['Cobrança mensal', 'Monthly billing', 'Cobro mensual'],
@@ -507,14 +507,32 @@
     if (language === 'pt') return value;
     var dict = dictionaries[language];
     if (dict.has(value)) return dict.get(value);
-    var match = value.match(/^Olá,\s*(.+)$/);
+    var match = value.match(/^Senha temporária gerada para (.+): ([a-f0-9]+)\. Copie-a e informe ao motorista por um canal seguro\. Ela não poderá ser exibida novamente\.$/);
+    if (match) {
+      return (language === 'en' ? 'Temporary password generated for ' : 'Contraseña temporal generada para ') +
+        match[1] + ': ' + match[2] +
+        (language === 'en'
+          ? '. Copy it and share it with the driver through a secure channel. It cannot be shown again.'
+          : '. Cópiala y compártela con el conductor por un canal seguro. No se podrá volver a mostrar.');
+    }
+    match = value.match(/^Olá,\s*(.+)$/);
     if (match) return (language === 'en' ? 'Hello, ' : 'Hola, ') + match[1];
-    match = value.match(/^(\d+)\s+rota\(s\) no período$/);
-    if (match) return match[1] + (language === 'en' ? ' route(s) in period' : ' ruta(s) en el período');
+    match = value.match(/^(\d+)\s+rotas? no período$/);
+    if (match) {
+      var oneRoute = match[1] === '1';
+      return match[1] + (language === 'en'
+        ? (oneRoute ? ' route in period' : ' routes in period')
+        : (oneRoute ? ' ruta en el período' : ' rutas en el período'));
+    }
     match = value.match(/^Novos clientes em (.+)$/);
     if (match) return (language === 'en' ? 'New clients in ' : 'Nuevos clientes en ') + match[1];
-    match = value.match(/^(\d+)\s+cliente\(s\)$/);
-    if (match) return match[1] + (language === 'en' ? ' client(s)' : ' cliente(s)');
+    match = value.match(/^(\d+)\s+clientes?$/);
+    if (match) {
+      var oneClient = match[1] === '1';
+      return match[1] + (language === 'en'
+        ? (oneClient ? ' client' : ' clients')
+        : (oneClient ? ' cliente' : ' clientes'));
+    }
     match = value.match(/^Cobranças \((\d+)\)$/);
     if (match) return (language === 'en' ? 'Charges (' : 'Cobros (') + match[1] + ')';
     match = value.match(/^(.+) · cliente desde (.+)$/);

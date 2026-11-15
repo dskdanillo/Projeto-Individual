@@ -99,11 +99,11 @@ app_header($u, 'Rotas', 'Cadastre, edite e acompanhe os trajetos e valores', 'ro
     <div class="form-row">
       <div class="form-group col-md-6">
         <label class="form-label" for="origem">De (origem)</label>
-        <input type="text" class="form-control" id="origem" name="origem" placeholder="Endereço de partida em Joinville" value="<?= h($formData['origem']) ?>" required>
+        <input type="text" class="form-control" id="origem" name="origem" placeholder="Rua, número, cidade/UF" value="<?= h($formData['origem']) ?>" required>
       </div>
       <div class="form-group col-md-6">
         <label class="form-label" for="destino">Para (destino)</label>
-        <input type="text" class="form-control" id="destino" name="destino" placeholder="Endereço de entrega em Joinville" value="<?= h($formData['destino']) ?>" required>
+        <input type="text" class="form-control" id="destino" name="destino" placeholder="Rua, número, cidade/UF" value="<?= h($formData['destino']) ?>" required>
       </div>
     </div>
 
@@ -150,7 +150,7 @@ app_header($u, 'Rotas', 'Cadastre, edite e acompanhe os trajetos e valores', 'ro
 
 <div class="dsk-card">
   <div class="section-title"><i class="bi bi-list-ul"></i> Minhas rotas</div>
-  <p class="text-dim" style="font-size:12.5px;">Toque numa rota para lançar ou ver os custos dela.</p>
+  <p class="text-dim" style="font-size:12.5px;">Selecione uma rota para consultar ou lançar os custos.</p>
   <?php if ($filtroErro !== ''): ?>
     <div class="alert alert-danger py-2 px-3" style="font-size:13.5px;border-radius:10px;"><?= h($filtroErro) ?></div>
   <?php endif; ?>

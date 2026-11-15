@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $n = gerar_mensalidades($pdo, $mes, $clienteId > 0 ? $clienteId : null);
             flash($n ? 'success' : 'warning', $n
-                ? "$n mensalidade(s) de " . mes_br($mes . '-01') . ' gerada(s).'
+                ? $n . ' ' . ($n === 1 ? 'mensalidade' : 'mensalidades') . ' de ' . mes_br($mes . '-01') . ($n === 1 ? ' gerada.' : ' geradas.')
                 : 'Nenhuma mensalidade nova: já existe cobrança ou o cliente não está elegível para ' . mes_br($mes . '-01') . '.');
         }
 
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             ->execute([date('Y-m-d H:i:s'), $cli['id']]);
                         flash('success', 'Conta de ' . $cli['nome'] . ' reativada: não há mais cobranças vencidas.');
                     } else {
-                        flash('warning', $cli['nome'] . ' ainda tem ' . $restam . ' cobrança(s) vencida(s). A conta continua offline.');
+                        flash('warning', $cli['nome'] . ' ainda tem ' . $restam . ' ' . ($restam === 1 ? 'cobrança vencida.' : 'cobranças vencidas.') . ' A conta continua sem acesso.');
                     }
                 }
             }
@@ -159,7 +159,7 @@ $st = $pdo->prepare('SELECT m.*, u.id AS usuario_id, u.nome, u.status
 $st->execute($p);
 $lista = $st->fetchAll();
 
-/* contas offline por inadimplência */
+/* contas sem acesso por inadimplência */
 $offline = $pdo->query("SELECT u.id, u.nome, u.status_motivo, u.status_alterado_em,
                                (SELECT COALESCE(SUM(m.valor),0) FROM mensalidades m WHERE m.cliente_id = c.id AND m.pago_em IS NULL) AS devendo,
                                (SELECT COUNT(*) FROM mensalidades m WHERE m.cliente_id = c.id AND m.pago_em IS NULL) AS qtd
@@ -274,7 +274,7 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
 <div class="row">
   <div class="col-lg-6 mb-3">
     <div class="dsk-card h-100">
-      <div class="section-title"><i class="bi bi-lock-fill"></i> Contas offline por inadimplência</div>
+      <div class="section-title"><i class="bi bi-lock-fill"></i> Contas sem acesso por inadimplência</div>
       <div class="table-responsive">
         <table class="table-dsk compact">
           <thead><tr><th>Cliente</th><th>Em aberto</th><th>Motivo</th></tr></thead>
@@ -286,7 +286,7 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
               <td class="text-dim"><?= h($o['status_motivo'] ?: '—') ?></td>
             </tr>
           <?php endforeach; if (!$offline): ?>
-            <tr><td colspan="3"><div class="empty-state"><i class="bi bi-unlock"></i>Nenhuma conta offline.</div></td></tr>
+            <tr><td colspan="3"><div class="empty-state"><i class="bi bi-unlock"></i>Nenhuma conta sem acesso.</div></td></tr>
           <?php endif; ?>
           </tbody>
         </table>

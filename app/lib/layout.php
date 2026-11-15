@@ -39,8 +39,8 @@ function html_head(string $title): void
 function theme_switch(bool $inline = false): string
 {
     return '<div class="theme-switch"' . ($inline ? ' style="position:static;"' : '') . '>
-      <button type="button" data-theme-btn="dark" title="Tema noite"><i class="bi bi-moon-stars-fill"></i></button>
-      <button type="button" data-theme-btn="light" title="Tema dia"><i class="bi bi-sun-fill"></i></button>
+      <button type="button" data-theme-btn="dark" title="Tema escuro"><i class="bi bi-moon-stars-fill"></i></button>
+      <button type="button" data-theme-btn="light" title="Tema claro"><i class="bi bi-sun-fill"></i></button>
       <label class="language-switch">
         <span class="sr-only">Idioma</span>
         <select data-language-select aria-label="Idioma">
