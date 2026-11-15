@@ -41,7 +41,7 @@ O **DSK - Gestão de Custo** ajuda o motorista parceiro a saber, rota por rota, 
 | 📍 **Distância automática** | Calcula os km pelas ruas reais e desenha o trajeto no mapa (OpenStreetMap). |
 | 🔁 **Ida e volta** | Uma opção dobra a distância, os custos e o valor a receber. |
 | ⛽ **Custos da rota** | Combustível calculado automaticamente pela distância, consumo (km/L) e preço por litro; demais custos continuam manuais. O lucro é calculado por rota. |
-| 📊 **Dashboard e relatórios** | Visão geral dos resultados e download de planilha compatível com Excel, filtrada por dia, mês, ano ou intervalo personalizado. |
+| 📊 **Dashboard e relatórios** | Visão geral do desempenho por período com filtros por dia, mês, ano ou intervalo personalizado, exibindo receitas, custos e lucro das rotas. |
 | 🗂️ **Histórico de rotas** | Filtre as rotas por dia, mês, ano ou intervalo personalizado. |
 | 👤 **Dados pessoais** | O cliente mantém seu próprio cadastro atualizado. |
 | 🛡️ **Painel administrativo** | Gestão de clientes (dados, senha e status da conta) e financeiro das mensalidades. |
