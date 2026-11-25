@@ -52,7 +52,7 @@ $st->execute($paramsPeriodo);
 $rotas = $st->fetchAll();
 
 // Últimas mensalidades para o cliente acompanhar as cobranças da plataforma
-$st = $pdo->prepare('SELECT referencia, valor, vencimento, pago_em
+$st = $pdo->prepare('SELECT referencia, periodo_fim, tipo, valor, vencimento, pago_em
                        FROM mensalidades
                       WHERE cliente_id = ?
                       ORDER BY referencia DESC
@@ -106,7 +106,7 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
   <p class="text-dim" style="font-size:12.5px;">Acompanhe suas cobranças e pagamentos. Para combinar o pagamento, fale com a administração; o sistema não processa pagamentos.</p>
   <div class="table-responsive">
     <table class="table-dsk compact">
-      <thead><tr><th>Referência</th><th>Vencimento</th><th>Valor</th><th>Situação</th></tr></thead>
+      <thead><tr><th>Período de uso</th><th>Vencimento</th><th>Valor</th><th>Situação</th></tr></thead>
       <tbody>
       <?php foreach ($mensalidades as $mensalidade):
           $situacao = !empty($mensalidade['pago_em'])
@@ -115,7 +115,7 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
           $rotulo = ['paga' => 'Paga', 'atrasada' => 'Em atraso', 'pendente' => 'A vencer'][$situacao];
       ?>
         <tr>
-          <td class="font-mono"><?= h(date('m/Y', strtotime($mensalidade['referencia']))) ?></td>
+          <td class="font-mono"><?= h(date_br($mensalidade['referencia'])) ?>–<?= h(date_br($mensalidade['periodo_fim'])) ?><?= $mensalidade['tipo'] === 'proporcional' ? ' · proporcional' : '' ?></td>
           <td class="font-mono"><?= h(date_br($mensalidade['vencimento'])) ?></td>
           <td class="font-mono"><?= brl($mensalidade['valor']) ?></td>
           <td>
@@ -126,7 +126,7 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
           </td>
         </tr>
       <?php endforeach; if (!$mensalidades): ?>
-        <tr><td colspan="4"><div class="empty-state"><i class="bi bi-receipt"></i>Nenhuma mensalidade registrada até o momento.</div></td></tr>
+        <tr><td colspan="4"><div class="empty-state"><i class="bi bi-receipt"></i>A primeira cobrança será gerada ao completar seu primeiro ciclo mensal de uso.</div></td></tr>
       <?php endif; ?>
       </tbody>
     </table>

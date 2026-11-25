@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/mensalidades.php';
+
 function db(): PDO
 {
     static $pdo = null;
@@ -27,6 +29,7 @@ function db(): PDO
     if (!$pdo->query("SHOW COLUMNS FROM clientes LIKE 'preco_combustivel'")->fetchColumn()) {
         $pdo->exec('ALTER TABLE clientes ADD COLUMN preco_combustivel DECIMAL(8,3) DEFAULT NULL AFTER consumo_km_l');
     }
+    migrar_cobrancas_ciclo($pdo);
     return $pdo;
 }
 

@@ -63,8 +63,9 @@ CREATE TABLE clientes (
   placa VARCHAR(10) DEFAULT NULL,
   consumo_km_l DECIMAL(6,2) DEFAULT NULL,
   preco_combustivel DECIMAL(8,3) DEFAULT NULL,
-  valor_mensalidade DECIMAL(10,2) NOT NULL DEFAULT 49.90,
+  valor_mensalidade DECIMAL(10,2) NOT NULL DEFAULT 29.00,
   dia_vencimento TINYINT UNSIGNED NOT NULL DEFAULT 10,
+  inicio_ciclo DATE DEFAULT NULL,
   criado_em TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_clientes_usuario (usuario_id),
@@ -104,7 +105,9 @@ CREATE TABLE custos_rota (
 CREATE TABLE mensalidades (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   cliente_id INT UNSIGNED NOT NULL,
-  referencia DATE NOT NULL COMMENT 'primeiro dia do mes de referencia',
+  referencia DATE NOT NULL COMMENT 'inicio do periodo de uso',
+  periodo_fim DATE NOT NULL,
+  tipo ENUM('mensal','proporcional') NOT NULL DEFAULT 'mensal',
   valor DECIMAL(10,2) NOT NULL,
   vencimento DATE NOT NULL,
   pago_em DATE DEFAULT NULL,
@@ -114,6 +117,12 @@ CREATE TABLE mensalidades (
   UNIQUE KEY uq_mensalidade_cliente_mes (cliente_id, referencia),
   KEY idx_mensalidade_vencimento (vencimento),
   CONSTRAINT fk_mensalidade_cliente FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE app_schema_migrations (
+  version VARCHAR(100) NOT NULL,
+  applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO usuarios (nome, email, senha, perfil, status)

@@ -42,15 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare("INSERT INTO usuarios (nome,email,senha,perfil,status) VALUES (?,?,?,'cliente','ativo')")
                     ->execute([$d['nome'], $d['email'], password_hash($d['senha'], PASSWORD_DEFAULT)]);
                 $novo = (int)$pdo->lastInsertId();
-                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,valor_mensalidade,dia_vencimento) VALUES (?,?,?,?,?,?,?,?)')
-                    ->execute([$novo, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa'], $d['valor_mensalidade'], $d['dia_vencimento']]);
-                gerar_mensalidades($pdo, date('Y-m'), (int)$pdo->lastInsertId());
+                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,valor_mensalidade) VALUES (?,?,?,?,?,?,?)')
+                    ->execute([$novo, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa'], $d['valor_mensalidade']]);
                 $pdo->commit();
             } catch (Throwable $e) {
                 $pdo->rollBack();
                 throw $e;
             }
-            flash('success', 'Cliente cadastrado e primeira mensalidade lançada.');
+            flash('success', 'Cliente cadastrado. A primeira cobrança será gerada ao completar o primeiro ciclo de uso.');
             redirect('/admin/clientes.php?editar=' . $novo);
         }
         $form = $d;
@@ -85,12 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare("UPDATE usuarios SET senha = ? WHERE id = ? AND perfil = 'cliente'")
                         ->execute([password_hash($d['senha'], PASSWORD_DEFAULT), $id]);
                 }
-                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,valor_mensalidade,dia_vencimento)
-                               VALUES (?,?,?,?,?,?,?,?)
+                $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,valor_mensalidade)
+                               VALUES (?,?,?,?,?,?,?)
                                ON DUPLICATE KEY UPDATE telefone = VALUES(telefone), cidade = VALUES(cidade), tipo_veiculo = VALUES(tipo_veiculo),
-                                    modelo_veiculo = VALUES(modelo_veiculo), placa = VALUES(placa), valor_mensalidade = VALUES(valor_mensalidade),
-                                    dia_vencimento = VALUES(dia_vencimento)')
-                    ->execute([$id, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa'], $d['valor_mensalidade'], $d['dia_vencimento']]);
+                                    modelo_veiculo = VALUES(modelo_veiculo), placa = VALUES(placa), valor_mensalidade = VALUES(valor_mensalidade)')
+                        ->execute([$id, $d['telefone'], $d['cidade'], $d['tipo_veiculo'], $d['modelo_veiculo'], $d['placa'], $d['valor_mensalidade']]);
                 $pdo->commit();
             } catch (Throwable $e) {
                 $pdo->rollBack();
@@ -102,20 +100,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $form = $d;
         $_GET['editar'] = (string)$id;
 
-    // ---- STATUS da conta: reativar / manter offline (inadimplente) / desativar ----
+    // ---- STATUS da conta: reativar / inadimplência / cancelamento ----
     } elseif ($acao === 'status') {
         $novo   = (string)($_POST['novo_status'] ?? '');
         $motivo = mb_substr(trim((string)($_POST['motivo'] ?? '')), 0, 255);
         if (!isset(STATUS_CONTA[$novo])) {
             flash('danger', 'Situação inválida.');
         } else {
-            $st = $pdo->prepare("UPDATE usuarios SET status = ?, status_motivo = ?, status_alterado_em = ? WHERE id = ? AND perfil = 'cliente'");
-            $st->execute([$novo, ($novo === 'ativo' || $motivo === '') ? null : $motivo, date('Y-m-d H:i:s'), $id]);
-            flash('success', [
-                'ativo'        => 'Conta reativada: o cliente já pode entrar no sistema.',
-                'inadimplente' => 'Conta mantida sem acesso por inadimplência até a regularização dos pagamentos.',
-                'inativo'      => 'Conta desativada: o cliente não consegue mais entrar.',
-            ][$novo]);
+            $atual = $pdo->prepare("SELECT u.status,
+                                           COALESCE(c.inicio_ciclo, DATE(u.criado_em), DATE(c.criado_em), CURRENT_DATE) AS inicio,
+                                           DAY(COALESCE(u.criado_em, c.criado_em, CURRENT_TIMESTAMP)) AS dia,
+                                           c.id AS cliente_id, c.valor_mensalidade
+                                      FROM usuarios u JOIN clientes c ON c.usuario_id = u.id
+                                     WHERE u.id = ? AND u.perfil = 'cliente'");
+            $atual->execute([$id]);
+            $cliente = $atual->fetch();
+            if (!$cliente) {
+                flash('danger', 'Cliente não encontrado.');
+            } else {
+                $cobrancaFinal = 0.0;
+                $pdo->beginTransaction();
+                try {
+                    if ($novo === 'inativo' && $cliente['status'] !== 'inativo') {
+                        $hoje = date('Y-m-d');
+                        gerar_mensalidades($pdo, $hoje, (int)$cliente['cliente_id']);
+                        $cobrancaFinal = gerar_cobranca_cancelamento(
+                            $pdo,
+                            (int)$cliente['cliente_id'],
+                            (string)$cliente['inicio'],
+                            (int)$cliente['dia'],
+                            (float)$cliente['valor_mensalidade'],
+                            $hoje
+                        );
+                    }
+                    $st = $pdo->prepare("UPDATE usuarios SET status = ?, status_motivo = ?, status_alterado_em = ? WHERE id = ? AND perfil = 'cliente'");
+                    $st->execute([$novo, ($novo === 'ativo' || $motivo === '') ? null : $motivo, date('Y-m-d H:i:s'), $id]);
+                    $pdo->commit();
+                } catch (Throwable $e) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
+                    throw $e;
+                }
+
+                $mensagens = [
+                    'ativo' => 'Conta reativada: o cliente já pode entrar no sistema.',
+                    'inadimplente' => 'Conta mantida sem acesso por inadimplência até a regularização dos pagamentos.',
+                    'inativo' => 'Assinatura cancelada e acesso encerrado.',
+                ];
+                if ($novo === 'inativo' && $cobrancaFinal > 0) {
+                    $mensagens['inativo'] .= ' Cobrança proporcional final: ' . brl($cobrancaFinal) . '.';
+                }
+                flash('success', $mensagens[$novo]);
+            }
         }
         redirect('/admin/clientes.php?editar=' . $id);
 
@@ -138,7 +175,7 @@ $cli      = null;
 if ($editarId > 0) {
     $st = $pdo->prepare("SELECT u.id, u.nome, u.email, u.status, u.status_motivo, u.status_alterado_em, u.criado_em,
                                 c.id AS cliente_id, c.telefone, c.cidade, c.tipo_veiculo, c.modelo_veiculo, c.placa,
-                                c.valor_mensalidade, c.dia_vencimento
+                                c.valor_mensalidade
                            FROM usuarios u LEFT JOIN clientes c ON c.usuario_id = u.id
                           WHERE u.id = ? AND u.perfil = 'cliente'");
     $st->execute([$editarId]);
@@ -194,13 +231,8 @@ $campos_cliente = function (bool $novo) use ($f): void { ?>
         <div class="form-group col-md-6">
           <label class="form-label" for="valor_mensalidade">Valor mensal (R$)</label>
           <input type="text" inputmode="decimal" class="form-control" id="valor_mensalidade" name="valor_mensalidade"
-                 value="<?= h(number_format((float)$f('valor_mensalidade', 49.90), 2, ',', '.')) ?>" required>
-        </div>
-        <div class="form-group col-md-6">
-          <label class="form-label" for="dia_vencimento">Dia de vencimento</label>
-          <input type="number" class="form-control" id="dia_vencimento" name="dia_vencimento" min="1" max="31"
-                 value="<?= h($f('dia_vencimento', date('j'))) ?>" required>
-          <div class="hint">Novos cadastros usam o dia em que a conta foi criada.</div>
+                 value="<?= h(number_format((float)$f('valor_mensalidade', 29.00), 2, ',', '.')) ?>" required>
+          <div class="hint">A cobrança é gerada ao completar cada ciclo de uso, na data mensal do cadastro. Se cancelar antes, será calculado o valor proporcional aos dias usados.</div>
         </div>
       </div>
 
@@ -270,7 +302,7 @@ if ($cli):
         <?php if ($cli['status'] !== 'ativo' && $cli['status_motivo']): ?><div class="mt-2"><strong>Motivo:</strong> <?= h($cli['status_motivo']) ?></div><?php endif; ?>
         <?php if ($cli['status_alterado_em']): ?><div class="mt-1">Alterada em <?= h(date('d/m/Y H:i', strtotime($cli['status_alterado_em']))) ?></div><?php endif; ?>
       </div>
-      <p class="text-dim" style="font-size:12.5px;">Contas <strong>inadimplentes</strong> ou <strong>inativas</strong> ficam sem acesso: o cliente não consegue entrar e, se já estiver conectado, será desconectado até você reativar a conta.</p>
+      <p class="text-dim" style="font-size:12.5px;">Contas <strong>inadimplentes</strong> ficam sem acesso até a regularização. Ao cancelar a assinatura, o acesso é encerrado e o sistema calcula uma cobrança proporcional pelos dias usados desde o último ciclo.</p>
       <form method="post">
         <?= csrf_field() ?>
         <input type="hidden" name="acao" value="status">
@@ -285,7 +317,7 @@ if ($cli):
           <button name="novo_status" value="inadimplente" class="btn btn-warning-dsk btn-block mb-2" style="height:44px;"><i class="bi bi-lock-fill"></i> Suspender acesso (inadimplente)</button>
         <?php endif; ?>
         <?php if ($cli['status'] !== 'inativo'): ?>
-          <button name="novo_status" value="inativo" class="btn btn-outline-dsk btn-block" style="height:44px;"><i class="bi bi-person-dash-fill"></i> Desativar conta</button>
+          <button name="novo_status" value="inativo" class="btn btn-outline-dsk btn-block" style="height:44px;"><i class="bi bi-person-dash-fill"></i> Cancelar assinatura e encerrar acesso</button>
         <?php endif; ?>
       </form>
     </div>

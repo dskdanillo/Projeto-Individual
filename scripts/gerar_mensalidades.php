@@ -11,6 +11,6 @@ require dirname(__DIR__) . '/app/lib/db.php';
 require dirname(__DIR__) . '/app/lib/mensalidades.php';
 
 $hoje = date('Y-m-d');
-$quantidade = gerar_mensalidades(db(), date('Y-m'), null, $hoje);
+$quantidade = gerar_mensalidades(db(), $hoje);
 $descricao = $quantidade === 1 ? 'mensalidade gerada' : 'mensalidades geradas';
-fwrite(STDOUT, "$quantidade $descricao para " . date('m/Y') . ".\n");
+fwrite(STDOUT, "$quantidade $descricao por ciclos de uso concluídos até " . date('d/m/Y') . ".\n");

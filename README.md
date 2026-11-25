@@ -150,7 +150,7 @@ O menu do administrador tem **Dashboard**, **Clientes**, **Recuperação de senh
 
 - **Clientes:** selecione um cadastro para editar dados pessoais e de acesso, redefinir a senha e controlar o status da conta. Cidade é salva no formato `CIDADE / UF`; e-mail e telefone não podem se repetir.
 - **Recuperação de senhas:** confira as solicitações de motoristas e gere uma senha temporária, exibida uma única vez para ser compartilhada por um canal seguro.
-- **Financeiro:** controla somente a **mensalidade** que o cliente paga para usar a plataforma. Novos cadastros recebem o vencimento no dia em que foram criados e a primeira cobrança é lançada na hora. As próximas mensalidades são geradas automaticamente conforme o dia individual de vencimento; o administrador também pode gerar para todos ou somente para um cliente. A cobrança aparece no financeiro e no painel do cliente. O administrador registra a baixa quando confirma o recebimento. Pix é uma forma de pagamento registrada, não uma chave armazenada.
+- **Financeiro:** controla somente a **mensalidade** que o cliente paga para usar a plataforma. O valor padrão é R$ 29. Cada ciclo começa na data do cadastro e renova mensalmente no mesmo dia; a primeira cobrança é gerada ao completar o primeiro ciclo. Se o cliente cancelar antes da renovação, é gerada uma cobrança proporcional pelos dias usados. A geração recorrente depende da tarefa diária do Windows. O administrador registra a baixa quando confirma o recebimento. Pix é uma forma de pagamento registrada, não uma chave armazenada.
 - O sistema **não processa pagamentos** nem recebe valores de rotas.
 
 ### Ativar a geração automática no Windows (XAMPP)
@@ -164,7 +164,7 @@ A geração recorrente depende do Agendador de Tarefas do Windows e do MySQL est
 5. Em **Adicionar argumentos**, informe `"C:\xampp\htdocs\projeto individual 3.0\dsk\scripts\gerar_mensalidades.php"` (com aspas e ajustado para a pasta onde o projeto está instalado).
 6. Salve a tarefa e mantenha o MySQL do XAMPP ligado no horário escolhido. Se o computador ficar desligado, habilite a opção para executar a tarefa assim que possível após o horário agendado.
 
-O script é idempotente: pode rodar diariamente sem duplicar mensalidades. Ele cria as cobranças do mês cujo vencimento individual já chegou. Para clientes antigos, ajuste o valor e o dia de vencimento em **Clientes → editar cliente**. A ação manual fica em **Financeiro → Gerar mensalidades**, onde é possível selecionar um único cliente.
+O script é idempotente: pode rodar diariamente sem duplicar mensalidades. Ele cria as cobranças dos ciclos de uso que terminaram até a data da execução. Em meses sem o dia original (por exemplo, um cadastro no dia 31 em fevereiro), a renovação ocorre no último dia do mês; nos meses seguintes, volta ao dia original. Os pagamentos são confirmados manualmente em **Financeiro**; o sistema não processa pagamentos.
 
 ## 🗂️ Estrutura do projeto
 

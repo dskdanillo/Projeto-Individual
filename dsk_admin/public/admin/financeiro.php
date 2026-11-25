@@ -21,57 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $acao = (string)($_POST['acao'] ?? '');
 
-    // ---- GERAR mensalidades do mês para todos os clientes ----
-    if ($acao === 'gerar') {
-        $mes = (string)($_POST['mes'] ?? '');
-        if (!mes_valido($mes)) {
-            flash('danger', 'Escolha um mês válido.');
-        } else {
-            $clienteId = (int)($_POST['cliente_id'] ?? 0);
-            if ($clienteId < 0) {
-                flash('danger', 'Cliente inválido.');
-                voltar_financeiro();
-            }
-            $st = $pdo->prepare('SELECT 1 FROM clientes WHERE id = ?');
-            $st->execute([$clienteId]);
-            if ($clienteId > 0 && !$st->fetch()) {
-                flash('danger', 'Cliente não encontrado.');
-                voltar_financeiro();
-            }
-            $n = gerar_mensalidades($pdo, $mes, $clienteId > 0 ? $clienteId : null);
-            flash($n ? 'success' : 'warning', $n
-                ? $n . ' ' . ($n === 1 ? 'mensalidade' : 'mensalidades') . ' de ' . mes_br($mes . '-01') . ($n === 1 ? ' gerada.' : ' geradas.')
-                : 'Nenhuma mensalidade nova: já existe cobrança ou o cliente não está elegível para ' . mes_br($mes . '-01') . '.');
-        }
-
-    // ---- NOVA cobrança avulsa ----
-    } elseif ($acao === 'criar') {
-        $cid  = (int)($_POST['cliente_id'] ?? 0);
-        $mes  = (string)($_POST['mes'] ?? '');
-        $valor = num_in((string)($_POST['valor'] ?? ''));
-        $venc = (string)($_POST['vencimento'] ?? '');
-        $ok = $pdo->prepare('SELECT 1 FROM clientes WHERE id = ?');
-        $ok->execute([$cid]);
-        if (!$ok->fetch())                  flash('danger', 'Escolha um cliente.');
-        elseif (!mes_valido($mes))          flash('danger', 'Escolha o mês de referência.');
-        elseif ($valor <= 0 || $valor > 99999) flash('danger', 'Informe um valor válido.');
-        elseif (!data_valida($venc))        flash('danger', 'Informe a data de vencimento.');
-        else {
-            try {
-                $pdo->prepare('INSERT INTO mensalidades (cliente_id, referencia, valor, vencimento) VALUES (?,?,?,?)')
-                    ->execute([$cid, $mes . '-01', $valor, $venc]);
-                flash('success', 'Cobrança lançada.');
-            } catch (PDOException $e) {
-                if ($e->getCode() === '23000') {
-                    flash('danger', 'Este cliente já tem cobrança para ' . mes_br($mes . '-01') . '.');
-                } else {
-                    throw $e;
-                }
-            }
-        }
-
     // ---- DAR BAIXA (registrar pagamento) e, se quiser, reativar a conta ----
-    } elseif ($acao === 'baixar') {
+    if ($acao === 'baixar') {
         $id    = (int)($_POST['id'] ?? 0);
         $data  = (string)($_POST['pago_em'] ?? '');
         $forma = (string)($_POST['forma'] ?? '');
@@ -134,7 +85,11 @@ $clienteF = (int)($_GET['cliente'] ?? 0);
 
 $whereBase = ['1 = 1'];
 $pBase     = [];
-if ($mes !== '')    { $whereBase[] = 'm.referencia = ?'; $pBase[] = $mes . '-01'; }
+if ($mes !== '')    {
+    $whereBase[] = 'm.referencia >= ? AND m.referencia < DATE_ADD(?, INTERVAL 1 MONTH)';
+    $pBase[] = $mes . '-01';
+    $pBase[] = $mes . '-01';
+}
 if ($clienteF > 0)  { $whereBase[] = 'm.cliente_id = ?'; $pBase[] = $clienteF; }
 
 /* KPIs (respeitam mês e cliente, não a situação) */
@@ -166,19 +121,25 @@ $offline = $pdo->query("SELECT u.id, u.nome, u.status_motivo, u.status_alterado_
                           FROM usuarios u JOIN clientes c ON c.usuario_id = u.id
                          WHERE u.perfil = 'cliente' AND u.status = 'inadimplente' ORDER BY u.nome")->fetchAll();
 
-/* últimos 6 meses */
-$st = $pdo->prepare('SELECT referencia, SUM(valor) previsto, SUM(CASE WHEN pago_em IS NOT NULL THEN valor ELSE 0 END) recebido
-                       FROM mensalidades WHERE referencia >= ? GROUP BY referencia ORDER BY referencia DESC');
+/* últimos 6 meses, agrupados pelo fechamento do ciclo */
+$st = $pdo->prepare("SELECT DATE_FORMAT(periodo_fim, '%Y-%m-01') AS referencia,
+                            SUM(valor) previsto,
+                            SUM(CASE WHEN pago_em IS NOT NULL THEN valor ELSE 0 END) recebido
+                       FROM mensalidades
+                      WHERE periodo_fim >= ?
+                      GROUP BY DATE_FORMAT(periodo_fim, '%Y-%m-01')
+                      ORDER BY referencia DESC");
 $st->execute([date('Y-m-01', strtotime('first day of -5 months'))]);
 $meses = $st->fetchAll();
 
 $clientes = $pdo->query("SELECT c.id, u.nome FROM clientes c JOIN usuarios u ON u.id = c.usuario_id WHERE u.perfil = 'cliente' ORDER BY u.nome")->fetchAll();
 
 $qs = $_SERVER['QUERY_STRING'] ?? '';
-$topo = '<button type="button" class="btn btn-outline-dsk px-3" style="height:42px;" data-toggle="modal" data-target="#modalGerar"><i class="bi bi-magic"></i> Gerar mensalidades</button>
-         <button type="button" class="btn btn-accent px-3" style="height:42px;" data-toggle="modal" data-target="#modalNova"><i class="bi bi-plus-circle-fill"></i> Nova cobrança</button>';
-app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clientes', 'financeiro', $topo);
+app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clientes', 'financeiro');
 ?>
+<div class="dsk-card mb-3">
+  <p class="text-dim mb-0" style="font-size:13px;">A mensalidade configurada para o cliente (R$ 29 por padrão) é gerada automaticamente ao final de cada ciclo mensal de uso, contado da data de cadastro. O sistema registra os pagamentos confirmados pela administração, mas não processa pagamentos.</p>
+</div>
 <div class="row">
   <?php foreach ([
       ['bi-receipt',               'Previsto',   $k['previsto'], '',                                                   ''],
@@ -198,7 +159,7 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
   <form method="get" class="filter-bar">
     <div class="form-row align-items-end">
       <div class="form-group col-6 col-md-3">
-        <label class="form-label" for="fMes">Mês de referência</label>
+        <label class="form-label" for="fMes">Mês de início do período</label>
         <input type="month" class="form-control" id="fMes" name="mes" value="<?= h($mes) ?>">
         <div class="hint">Vazio = todos os meses</div>
       </div>
@@ -219,8 +180,8 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
         </select>
       </div>
       <div class="form-group col-md-2 d-flex" style="gap:8px;">
-        <button class="btn btn-accent flex-fill" style="height:42px;"><i class="bi bi-funnel-fill"></i> Filtrar</button>
-        <a href="/admin/financeiro.php" class="btn btn-outline-dsk" style="height:42px;padding-top:.6rem;" title="Voltar ao mês atual"><i class="bi bi-x-lg"></i></a>
+        <button class="btn btn-accent flex-fill"><i class="bi bi-funnel-fill"></i> Filtrar</button>
+        <a href="/admin/financeiro.php" class="btn btn-outline-dsk" title="Voltar ao mês atual"><i class="bi bi-x-lg"></i></a>
       </div>
     </div>
   </form>
@@ -228,23 +189,23 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
 
 <div class="dsk-card mb-3">
   <div class="section-title"><i class="bi bi-list-check"></i> Cobranças (<?= count($lista) ?>)</div>
-  <p class="text-dim" style="font-size:12.5px;">Gere a mensalidade do mês e compartilhe os dados de pagamento com o cliente pelo canal habitual. Depois, registre aqui quando o pagamento for confirmado.</p>
+  <p class="text-dim" style="font-size:12.5px;">Compartilhe os dados de pagamento com o cliente pelo canal habitual. Depois, registre aqui quando o pagamento for confirmado.</p>
   <div class="table-responsive">
-    <table class="table-dsk">
-      <thead><tr><th>Cliente</th><th>Referência</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead>
+    <table class="table-dsk finance-charges">
+      <thead><tr><th>Cliente</th><th>Período de uso</th><th>Vencimento</th><th>Valor</th><th>Situação</th><th>Pagamento</th><th></th></tr></thead>
       <tbody>
       <?php foreach ($lista as $m): $s = situacao_mensalidade($m, $hoje); ?>
         <tr>
-          <td style="min-width:160px;">
+          <td data-label="Cliente" style="min-width:160px;">
             <a class="name-link" href="/admin/clientes.php?editar=<?= (int)$m['usuario_id'] ?>"><?= h($m['nome']) ?></a>
             <?php if ($m['status'] !== 'ativo'): ?><div><?= badge_conta($m['status']) ?></div><?php endif; ?>
           </td>
-          <td class="font-mono"><?= h(mes_br($m['referencia'])) ?></td>
-          <td class="font-mono"><?= h(date_br($m['vencimento'])) ?><?php if ($s === 'atrasada'): ?> <small style="color:var(--danger);"><?= dias_atraso($m['vencimento'], $hoje) ?> d</small><?php endif; ?></td>
-          <td class="font-mono"><?= brl($m['valor']) ?></td>
-          <td><?= badge_mensalidade($s) ?></td>
-          <td class="font-mono text-dim"><?= $m['pago_em'] ? h(date_br($m['pago_em'])) . ' · ' . h($m['forma_pagamento']) : '—' ?></td>
-          <td class="text-right" style="white-space:nowrap;">
+          <td class="font-mono" data-label="Período de uso"><?= h(date_br($m['referencia'])) ?>–<?= h(date_br($m['periodo_fim'])) ?><?= $m['tipo'] === 'proporcional' ? ' · proporcional' : '' ?></td>
+          <td class="font-mono" data-label="Vencimento"><?= h(date_br($m['vencimento'])) ?><?php if ($s === 'atrasada'): ?> <small style="color:var(--danger);"><?= dias_atraso($m['vencimento'], $hoje) ?> d</small><?php endif; ?></td>
+          <td class="font-mono" data-label="Valor"><?= brl($m['valor']) ?></td>
+          <td data-label="Situação"><?= badge_mensalidade($s) ?></td>
+          <td class="font-mono text-dim" data-label="Pagamento"><?= $m['pago_em'] ? h(date_br($m['pago_em'])) . ' · ' . h($m['forma_pagamento']) : '—' ?></td>
+          <td class="text-right" data-label="" style="white-space:nowrap;">
             <?php if ($s !== 'paga'): ?>
               <button type="button" class="btn btn-sm btn-accent" style="width:auto;" data-toggle="modal" data-target="#modalBaixa"
                       data-id="<?= (int)$m['id'] ?>" data-nome="<?= h($m['nome']) ?>" data-valor="<?= h(brl($m['valor'])) ?>"
@@ -264,7 +225,7 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
           </td>
         </tr>
       <?php endforeach; if (!$lista): ?>
-        <tr><td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i>Nenhuma cobrança encontrada.<br><small>Gere as mensalidades para elas aparecerem nesta lista e no painel do cliente.</small><br><button type="button" class="btn btn-accent mt-3" data-toggle="modal" data-target="#modalGerar"><i class="bi bi-magic"></i> Gerar mensalidades</button></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i>Nenhuma cobrança encontrada.<br><small>As cobranças aparecem automaticamente ao fim do ciclo de uso.</small></div></td></tr>
       <?php endif; ?>
       </tbody>
     </table>
@@ -348,71 +309,6 @@ app_header($u, 'Financeiro', 'Mensalidades, pagamentos e inadimplência dos clie
   </div></div>
 </div>
 
-<!-- Modal: nova cobrança -->
-<div class="modal fade" id="modalNova" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content">
-    <form method="post">
-      <?= csrf_field() ?><input type="hidden" name="qs" value="<?= h($qs) ?>"><input type="hidden" name="acao" value="criar">
-      <div class="modal-header"><h5 class="modal-title font-display">Nova cobrança</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button></div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label" for="novaCli">Cliente</label>
-          <select class="custom-select" id="novaCli" name="cliente_id" required>
-            <option value="">— Selecione —</option>
-            <?php foreach ($clientes as $c): ?><option value="<?= (int)$c['id'] ?>"><?= h($c['nome']) ?></option><?php endforeach; ?>
-          </select>
-        </div>
-        <div class="form-row">
-          <div class="form-group col-6">
-            <label class="form-label" for="novaMes">Mês de referência</label>
-            <input type="month" class="form-control" id="novaMes" name="mes" value="<?= h(date('Y-m')) ?>" required>
-          </div>
-          <div class="form-group col-6">
-            <label class="form-label" for="novaValor">Valor (R$)</label>
-            <input type="text" inputmode="decimal" class="form-control" id="novaValor" name="valor" placeholder="0,00" required>
-          </div>
-        </div>
-        <div class="form-group mb-0">
-          <label class="form-label" for="novaVenc">Vencimento</label>
-          <input type="date" class="form-control" id="novaVenc" name="vencimento" value="<?= h($hoje) ?>" required>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-dsk" data-dismiss="modal">Cancelar</button>
-        <button class="btn btn-accent px-4"><i class="bi bi-check2-circle"></i> Lançar cobrança</button>
-      </div>
-    </form>
-  </div></div>
-</div>
-
-<!-- Modal: gerar mensalidades do mês -->
-<div class="modal fade" id="modalGerar" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content">
-    <form method="post">
-      <?= csrf_field() ?><input type="hidden" name="qs" value="<?= h($qs) ?>"><input type="hidden" name="acao" value="gerar">
-      <div class="modal-header"><h5 class="modal-title font-display">Gerar mensalidades</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button></div>
-      <div class="modal-body">
-        <p class="text-dim" style="font-size:13px;">Gera a cobrança usando o valor e o dia de vencimento configurados para o cliente. Se já existir cobrança para o mês, ela não será duplicada. A geração automática diária também cria as cobranças no vencimento.</p>
-        <div class="form-group">
-          <label class="form-label" for="gerarCliente">Cliente</label>
-          <select class="custom-select" id="gerarCliente" name="cliente_id">
-            <option value="">Todos os clientes elegíveis</option>
-            <?php foreach ($clientes as $c): ?><option value="<?= (int)$c['id'] ?>"><?= h($c['nome']) ?></option><?php endforeach; ?>
-          </select>
-          <div class="hint">Selecione um cliente para gerar somente a mensalidade dele.</div>
-        </div>
-        <label class="form-label" for="gerarMes">Mês de referência</label>
-        <input type="month" class="form-control" id="gerarMes" name="mes" value="<?= h(date('Y-m')) ?>" required>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-dsk" data-dismiss="modal">Cancelar</button>
-        <button class="btn btn-accent px-4"><i class="bi bi-magic"></i> Gerar</button>
-      </div>
-    </form>
-  </div></div>
-</div>
 <?php app_footer('<script>
 $("#modalBaixa").on("show.bs.modal", function (e) {
   var b = $(e.relatedTarget);

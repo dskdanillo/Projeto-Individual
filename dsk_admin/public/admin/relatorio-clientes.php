@@ -55,7 +55,7 @@ $traducoesPdf = [
 ];
 $t = static fn(string $valor): string => $traducoesPdf[$idioma][$valor] ?? $valor;
 
-$clientes = $pdo->query("SELECT u.nome, u.status, c.cidade, c.telefone, c.valor_mensalidade, c.dia_vencimento
+$clientes = $pdo->query("SELECT u.nome, u.status, c.cidade, c.telefone, c.valor_mensalidade, DAY(u.criado_em) AS dia_vencimento
                            FROM usuarios u
                            LEFT JOIN clientes c ON c.usuario_id = u.id
                           WHERE u.perfil = 'cliente'

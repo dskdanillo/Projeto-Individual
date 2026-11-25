@@ -48,9 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $pdo->prepare('INSERT INTO usuarios (nome,email,senha,perfil) VALUES (?,?,?,"cliente")')
                         ->execute([$v['nome'], $v['email'], password_hash($senha, PASSWORD_DEFAULT)]);
                     $uid = (int)$pdo->lastInsertId();
-                    $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa,dia_vencimento) VALUES (?,?,?,?,?,?,?)')
-                        ->execute([$uid, $v['telefone'], $v['cidade'], $v['tipo_veiculo'], $v['modelo_veiculo'], $v['placa'], (int)date('j')]);
-                    gerar_mensalidades($pdo, date('Y-m'), (int)$pdo->lastInsertId());
+                    $pdo->prepare('INSERT INTO clientes (usuario_id,telefone,cidade,tipo_veiculo,modelo_veiculo,placa) VALUES (?,?,?,?,?,?)')
+                        ->execute([$uid, $v['telefone'], $v['cidade'], $v['tipo_veiculo'], $v['modelo_veiculo'], $v['placa']]);
                     $pdo->commit();
                 } catch (PDOException $e) {
                     $pdo->rollBack();
@@ -60,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $erros[] = 'Já existe um cadastro com este e-mail ou telefone.';
                 }
                 if (!$erros) {
-                    flash('success', 'Cadastro concluído! A primeira cobrança de mensalidade já está disponível no painel. Entre com seu e-mail e senha para consultá-la.');
+                    flash('success', 'Cadastro concluído! A primeira cobrança será gerada após o primeiro ciclo mensal de uso, na data de renovação.');
                     redirect('/index.php');
                 }
             }

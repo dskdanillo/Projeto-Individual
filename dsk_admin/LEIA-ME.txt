@@ -47,11 +47,13 @@ DSK - ÁREA ADMINISTRATIVA (clientes e financeiro)
    O cadastro valida cidade no formato CIDADE / UF e impede e-mail ou telefone
    duplicado. O cliente pode editar seu cadastro em Dados pessoais depois de entrar.
    O Financeiro registra as mensalidades da plataforma; não processa pagamentos
-   nem cobra valores de rotas. Novos cadastros vencem no dia em que foram criados
-   e recebem a primeira cobrança imediatamente. As próximas cobranças são
-   geradas por scripts/gerar_mensalidades.php; agende esse script diariamente
-   no Agendador de Tarefas do Windows com C:\xampp\php\php.exe e mantenha o MySQL
-   ligado. Pix é apenas uma forma manual de marcar uma mensalidade como paga.
+   nem cobra valores de rotas. O valor padrão é R$ 29. A primeira cobrança é
+   gerada ao completar o primeiro ciclo mensal de uso, contado da data do cadastro.
+   Os próximos ciclos renovam no mesmo dia; ao cancelar antes da renovação, o sistema
+   calcula o valor proporcional pelos dias usados. Agende
+   scripts/gerar_mensalidades.php diariamente no Agendador de Tarefas do Windows
+   com C:\xampp\php\php.exe e mantenha o MySQL ligado. Pix é apenas uma forma
+   manual de marcar uma mensalidade como paga.
 
 3) RODAR (igual antes)
    C:\xampp\php\php.exe -S 127.0.0.1:8000 -t public
