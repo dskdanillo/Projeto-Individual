@@ -102,38 +102,6 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
 </div>
 
 <div class="dsk-card mb-3">
-  <div class="section-title"><i class="bi bi-receipt"></i> Mensalidades da plataforma</div>
-  <p class="text-dim" style="font-size:12.5px;">Acompanhe suas cobranças e pagamentos. Para combinar o pagamento, fale com a administração; o sistema não processa pagamentos.</p>
-  <div class="table-responsive">
-    <table class="table-dsk compact">
-      <thead><tr><th>Período de uso</th><th>Vencimento</th><th>Valor</th><th>Situação</th></tr></thead>
-      <tbody>
-      <?php foreach ($mensalidades as $mensalidade):
-          $situacao = !empty($mensalidade['pago_em'])
-              ? 'paga'
-              : ($mensalidade['vencimento'] < date('Y-m-d') ? 'atrasada' : 'pendente');
-          $rotulo = ['paga' => 'Paga', 'atrasada' => 'Em atraso', 'pendente' => 'A vencer'][$situacao];
-      ?>
-        <tr>
-          <td class="font-mono"><?= h(date_br($mensalidade['referencia'])) ?>–<?= h(date_br($mensalidade['periodo_fim'])) ?><?= $mensalidade['tipo'] === 'proporcional' ? ' · proporcional' : '' ?></td>
-          <td class="font-mono"><?= h(date_br($mensalidade['vencimento'])) ?></td>
-          <td class="font-mono"><?= brl($mensalidade['valor']) ?></td>
-          <td>
-            <span class="badge-status <?= h($situacao) ?>"><?= h($rotulo) ?></span>
-            <?php if (!empty($mensalidade['pago_em'])): ?>
-              <small class="text-dim"> em <?= h(date_br($mensalidade['pago_em'])) ?></small>
-            <?php endif; ?>
-          </td>
-        </tr>
-      <?php endforeach; if (!$mensalidades): ?>
-        <tr><td colspan="4"><div class="empty-state"><i class="bi bi-receipt"></i>A primeira cobrança será gerada ao completar seu primeiro ciclo mensal de uso.</div></td></tr>
-      <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="dsk-card mb-3">
   <div class="section-title"><i class="bi bi-file-earmark-pdf"></i> Gerar relatório</div>
   <p class="text-dim" style="font-size:12.5px;">Baixe um PDF organizado com o resumo das rotas, faturamento, gastos por categoria e lucro no período escolhido.</p>
   <form method="get" action="/cliente/relatorio.php" data-date-filter>
@@ -227,4 +195,40 @@ $cores = ['--accent', '--accent-2', '--success', '--warning', '--danger', '--inf
     </table>
   </div>
 </div>
+
+<details class="billing-disclosure">
+  <summary><i class="bi bi-receipt"></i> Mensalidades da plataforma</summary>
+  <div class="billing-disclosure__content">
+    <p class="billing-disclosure__description">Acompanhe suas cobranças e pagamentos. Para combinar o pagamento, fale com a administração; o sistema não processa pagamentos.</p>
+    <?php if ($mensalidades): ?>
+    <div class="table-responsive">
+      <table class="table-dsk compact">
+        <thead><tr><th>Período de uso</th><th>Vencimento</th><th>Valor</th><th>Situação</th></tr></thead>
+        <tbody>
+        <?php foreach ($mensalidades as $mensalidade):
+            $situacao = !empty($mensalidade['pago_em'])
+                ? 'paga'
+                : ($mensalidade['vencimento'] < date('Y-m-d') ? 'atrasada' : 'pendente');
+            $rotulo = ['paga' => 'Paga', 'atrasada' => 'Em atraso', 'pendente' => 'A vencer'][$situacao];
+        ?>
+          <tr>
+            <td class="font-mono"><?= h(date_br($mensalidade['referencia'])) ?>–<?= h(date_br($mensalidade['periodo_fim'])) ?><?= $mensalidade['tipo'] === 'proporcional' ? ' · proporcional' : '' ?></td>
+            <td class="font-mono"><?= h(date_br($mensalidade['vencimento'])) ?></td>
+            <td class="font-mono"><?= brl($mensalidade['valor']) ?></td>
+            <td>
+              <span class="badge-status <?= h($situacao) ?>"><?= h($rotulo) ?></span>
+              <?php if (!empty($mensalidade['pago_em'])): ?>
+                <small class="text-dim"> em <?= h(date_br($mensalidade['pago_em'])) ?></small>
+              <?php endif; ?>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+    <?php else: ?>
+      <p class="billing-disclosure__note">A primeira cobrança será gerada ao completar seu primeiro ciclo mensal de uso.</p>
+    <?php endif; ?>
+  </div>
+</details>
 <?php app_footer('<script src="/assets/js/date-filter.js"></script>');

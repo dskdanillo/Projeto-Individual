@@ -84,7 +84,7 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
    AUTH SHELL (login / cadastro)
    ============================================================ */
 .auth-shell{
-  min-height: 100vh;
+  min-height: calc(100vh - 36px);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -204,7 +204,34 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
 /* ============================================================
    APP SHELL (sidebar layouts)
    ============================================================ */
-.app-shell{ display:flex; min-height:100vh; background: var(--bg); }
+.app-shell{ display:flex; min-height:calc(100vh - 36px); background: var(--bg); }
+
+.system-footer{
+  min-height:36px;
+  padding:6px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  color:var(--text-faint);
+  font-size:9px;
+  letter-spacing:.04em;
+}
+.system-footer--app{ margin-left:264px; }
+.system-footer__mark{
+  width:19px;
+  height:19px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  background:linear-gradient(145deg,var(--accent),var(--accent-2));
+  color:#10182c;
+  font-family:var(--font-display);
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:0;
+}
 
 .sidebar{
   width: 264px; flex-shrink:0;
@@ -335,6 +362,7 @@ a:hover{ color: var(--accent-2); text-decoration:none; }
   .sidebar{ transform: translateX(-100%); box-shadow: var(--shadow-soft); }
   .sidebar.open{ transform: translateX(0); }
   .main-content{ margin-left:0; padding: 20px 16px 50px; }
+  .system-footer--app{ margin-left:0; }
   .page-shortcuts{ right:16px; bottom:16px; }
   .sidebar-toggle-btn{ display:inline-flex; }
   .sidebar-backdrop{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:19; }

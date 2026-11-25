@@ -52,9 +52,13 @@ function theme_switch(bool $inline = false): string
     </div>';
 }
 
-function scripts_base(string $extra = ''): void
+function scripts_base(string $extra = '', bool $inAppShell = false): void
 {
     ?>
+<footer class="system-footer<?= $inAppShell ? ' system-footer--app' : '' ?>" aria-label="DSK Gestão de Custo">
+  <span class="system-footer__mark" aria-hidden="true">DSK</span>
+  <span>Gestão de Custo</span>
+</footer>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/theme.js"></script>
@@ -125,5 +129,5 @@ function app_header(array $user, string $title, string $subtitle, string $active
 function app_footer(string $extraScripts = ''): void
 {
     echo "  </main>\n</div>\n";
-    scripts_base($extraScripts);
+    scripts_base($extraScripts, true);
 }
